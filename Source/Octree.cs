@@ -17,7 +17,7 @@ namespace NBody {
         private const Double Tolerance = .5;
 
         /// <summary>
-        /// Defines the minimum width of an Octree. Children are not created if their width would be smaller than 
+        /// Defines the minimum width of an Octree. Subtrees are not created if their width would be smaller than 
         /// this value. 
         /// </summary>
         private const Double MinimumWidth = 1;
@@ -51,12 +51,12 @@ namespace NBody {
         private Double Width = 0;
 
         /// <summary>
-        /// The number of Bodies in the tree. This helps determine when to add bodies to children. 
+        /// The number of Bodies in the tree. This helps determine when to add bodies to subtrees. 
         /// </summary>
         private Int32 Bodies = 0;
 
         /// <summary>
-        /// The first Body added to the tree. This is used when the first Body must be added to children
+        /// The first Body added to the tree. This is used when the first Body must be added to subtrees
         /// at a later time. 
         /// </summary>
         private Body FirstBody;
@@ -97,9 +97,9 @@ namespace NBody {
             if (Bodies == 1)
                 FirstBody = body;
             else
-                AddToChildren(body);
+                AddToSubtree(body);
             if (Bodies == 2)
-                AddToChildren(FirstBody);
+                AddToSubtree(FirstBody);
         }
 
         /// <summary>
@@ -107,9 +107,13 @@ namespace NBody {
         /// if it has not already been done so. 
         /// </summary>
         /// <param name="body">The Body to add to a subtree.</param>
-        private void AddToChildren(Body body) {
+        private void AddToSubtree(Body body) {
+
+            // Any subtrees will violate the width limit so don't create them.
             if (Width < MinimumWidth * 2)
                 return;
+
+            // Determine which subtree the Body belongs in and add it to that subtree. 
             if (body.Y < Y) {
                 if (body.X < X) {
                     if (body.Z < Z) {
@@ -181,7 +185,7 @@ namespace NBody {
             else if (Width * Width < Tolerance * Tolerance * (dx * dx + dy * dy + dz * dz))
                 PerformAcceleration(body, dx, dy, dz);
 
-            // Case 3. We can't perform the acceleration, so we pass the Body on to the children for a more 
+            // Case 3. We can't perform the acceleration, so we pass the Body on to the subtrees for a more 
             //         precise calculation. 
             else {
                 if (SubtreeA != null)

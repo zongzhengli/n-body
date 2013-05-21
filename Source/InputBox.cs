@@ -7,6 +7,7 @@ namespace NBody {
     /// This is the dialog box that appears to prompt for input. 
     /// </summary>
     partial class InputBox : Form {
+
         public InputBox() {
             InitializeComponent();
             Button b = new Button();
@@ -21,18 +22,18 @@ namespace NBody {
             Close();
         }
 
-        public DialogResult ShowDialog(String s, String d) {
-            promptLabel.Text = s;
-            responseBox.Text = d;
+        public DialogResult ShowDialog(String message, String defaultInputText) {
+            promptLabel.Text = message;
+            responseBox.Text = defaultInputText;
             CenterToScreen();
             return ShowDialog();
         }
 
-        public static String Show(String s, String d = "") {
+        public static String Show(String message, String defaultInputText = "") {
             using (InputBox a = new InputBox()) {
-                if (a.ShowDialog(s, d) == DialogResult.OK)
+                if (a.ShowDialog(message, defaultInputText) == DialogResult.OK)
                     return a.responseBox.Text;
-                return d;
+                return defaultInputText;
             }
         }
     }
