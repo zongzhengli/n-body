@@ -249,7 +249,7 @@
             this.pause.TabIndex = 9;
             this.pause.Text = "Pause";
             this.pause.UseVisualStyleBackColor = true;
-            this.pause.Click += new System.EventHandler(this.pauseClick);
+            this.pause.Click += new System.EventHandler(this.PauseClick);
             // 
             // Settings
             // 

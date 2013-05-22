@@ -8,10 +8,12 @@ using System.Windows.Forms;
 using Lattice;
 
 namespace NBody {
+
+    // The preset system types that can be generated. 
     enum SystemType { None, SlowParticles, FastParticles, MassiveBody, OrbitalSystem, BinarySystem, PlanetarySystem, DistributionTest };
 
     /// <summary>
-    /// This is the main window of the application and acts as the "world" of the simulation. 
+    /// The main window of the application and acts as the "world" of the simulation. 
     /// </summary>
     class World : Form {
         /// <summary>
@@ -93,7 +95,8 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Constructor for the World. Initializes the window, starts threads, and sets default values. 
+        /// Initializes the World. This sets window properties and other default values, starts threads, and 
+        /// shows the Settings window. 
         /// </summary>
         public World() {
 
@@ -140,18 +143,19 @@ namespace NBody {
                 if (Active)
                     lock (BodyLock) {
 
-                        // Determine how big the root tree needs to be by finding the maximum coordinate value. 
+                        // Determine half the length of the cube containing all the Bodies. 
                         Double halfLength = 0;
                         foreach (Body body in Bodies)
                             if (body != null) {
                                 body.Update();
-                                halfLength = Math.Max(Math.Abs(body.X), halfLength);
-                                halfLength = Math.Max(Math.Abs(body.Y), halfLength);
-                                halfLength = Math.Max(Math.Abs(body.Z), halfLength);
+                                halfLength = Math.Max(Math.Abs(body.Location.X), halfLength);
+                                halfLength = Math.Max(Math.Abs(body.Location.Y), halfLength);
+                                halfLength = Math.Max(Math.Abs(body.Location.Z), halfLength);
                             }
-                        Octree tree = new Octree(2.1 * halfLength);
 
-                        // Ddd the bodies to the root. 
+                        // Initialize the root tree and add the Bodies. The root tree needs to be slightly larger 
+                        // than twice the determined half length. 
+                        Octree tree = new Octree(2.1 * halfLength);
                         foreach (Body body in Bodies)
                             if (body != null)
                                 tree.Add(body);
@@ -168,7 +172,7 @@ namespace NBody {
                 if (elapsed < SimInterval)
                     Thread.Sleep(SimInterval);
 
-                // Update SimFPS counter
+                // Update simluation FPS counter.
                 SimStopwatch.Stop();
                 SimFps += (1000D / SimStopwatch.Elapsed.TotalMilliseconds - SimFps) * .1;
                 SimFps = SimFps > 1e7 ? 60 : SimFps;
@@ -213,7 +217,7 @@ namespace NBody {
                         }
                         break;
                     case SystemType.MassiveBody: {
-                            Bodies[0] = new Body(0, 0, 0, 1e10);
+                            Bodies[0] = new Body(Vector.Zero, 1e10);
                             for (Int32 i = 1; i < Bodies.Length; i++) {
                                 Double d = PseudoRandom.Double(1e6) + Bodies[0].Radius;
                                 Double a = PseudoRandom.Double(Math.PI * 2);
@@ -330,7 +334,7 @@ namespace NBody {
                             for (Int32 a = 0; a < s; a++)
                                 for (Int32 b = 0; b < s; b++)
                                     for (Int32 c = 0; c < s; c++)
-                                        Bodies[k++] = new Body((a - s / 2) * d, (b - s / 2) * d, (c - s / 2) * d, m);
+                                        Bodies[k++] = new Body(d * (new Vector((a - s / 2), (b - s / 2), (c - s / 2))), m);
                         }
                         break;
                 }
@@ -380,14 +384,14 @@ namespace NBody {
                 // Draw the Bodies. 
                 foreach (Body b in Bodies)
                     if (b != null)
-                        LatticeRenderer.FillCircle2D(g, brush, new Vector(b.X, b.Y, b.Z), b.Radius);
+                        LatticeRenderer.FillCircle2D(g, brush, b.Location, b.Radius);
 
                 brush = new SolidBrush(Color.FromArgb(50, Color.White));
                 g.DrawString("DRAW FPS: " + Math.Round(DrawFps), new Font("Arial", 8), brush, Width - 280, 10);
-                g.DrawString("WORLD FPS: " + Math.Round(SimFps), new Font("Arial", 8), brush, Width - 160, 10);
-                g.DrawString("ZONGZHENGLI", new Font("Arial", 8), brush, new Point(Width - 120, Height - 60));
+                g.DrawString("SIMULATION FPS: " + Math.Round(SimFps), new Font("Arial", 8), brush, Width - 170, 10);
+                g.DrawString("ZONG ZHENG LI", new Font("Arial", 8), brush, new Point(Width - 120, Height - 60));
 
-                // Update DrawFPS counter. 
+                // Update draw FPS counter. 
                 DrawStopwatch.Stop();
                 DrawFps += (1000D / DrawStopwatch.Elapsed.TotalMilliseconds - DrawFps) * .1;
                 DrawFps = DrawFps > 3e3 ? 60 : DrawFps;
@@ -399,7 +403,7 @@ namespace NBody {
         /// <summary>
         /// Invoked when a mouse button is pressed down. 
         /// </summary>
-        /// <param name="sender">The event sender.</param>
+        /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The mouse event.</param>
         private void MouseDownEvent(Object sender, MouseEventArgs e) {
             MouseIsDown = true;
@@ -408,7 +412,7 @@ namespace NBody {
         /// <summary>
         /// Invoked when a mouse button is lifted up. 
         /// </summary>
-        /// <param name="sender">The event sender.</param>
+        /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The mouse event.</param>
         private void MouseUpEvent(Object sender, MouseEventArgs e) {
             MouseIsDown = false;
@@ -417,7 +421,7 @@ namespace NBody {
         /// <summary>
         /// Invoked when the mouse cursor is moved. 
         /// </summary>
-        /// <param name="sender">The event sender.</param>
+        /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The mouse event.</param>
         private void MouseMoveEvent(Object sender, MouseEventArgs e) {
             if (MouseIsDown)
@@ -429,7 +433,7 @@ namespace NBody {
         /// <summary>
         /// Invoked when the mouse wheel is scrolled. 
         /// </summary>
-        /// <param name="sender">The event sender.</param>
+        /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The mouse event.</param>
         void MouseWheelEvent(Object sender, MouseEventArgs e) {
             CameraZVelocity += e.Delta * CameraZAcceleration;

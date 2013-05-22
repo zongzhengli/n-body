@@ -46,7 +46,7 @@
             this.button.TabIndex = 3;
             this.button.Text = "OK";
             this.button.UseVisualStyleBackColor = true;
-            this.button.Click += new System.EventHandler(this.buttonClick);
+            this.button.Click += new System.EventHandler(this.ButtonClick);
             // 
             // promptLabel
             // 

@@ -23,43 +23,41 @@ namespace NBody {
         private const Double MinimumWidth = 1;
 
         /// <summary>
-        /// The uninitialized subtrees, each as a separate field. Each is defined individually as an array 
-        /// of subtrees didn't perform as well due to bounds checking. 
+        /// The collection of subtrees for the tree. 
         /// </summary>
-        private Octree SubtreeA;
-        private Octree SubtreeB;
-        private Octree SubtreeC;
-        private Octree SubtreeD;
-        private Octree SubtreeE;
-        private Octree SubtreeF;
-        private Octree SubtreeG;
-        private Octree SubtreeH;
+        private Octree[] Subtrees = null;
 
         /// <summary>
-        /// The value and position of the center of mass of the tree. These fields are incrementally updated 
-        /// when a Body is added. 
+        /// The location of the center of the tree's bounds. 
         /// </summary>
-        private Vector CenterOfMass = Vector.Zero;
-        private Double Mass = 0;
+        private Vector Location;
 
         /// <summary>
-        /// The spatial properties of the tree. These fields define the bounds of the tree. 
+        /// The width of the tree's bounds. 
         /// </summary>
-        private Double X = 0;
-        private Double Y = 0;
-        private Double Z = 0;
         private Double Width = 0;
 
         /// <summary>
-        /// The number of Bodies in the tree. This helps determine when to add bodies to subtrees. 
+        /// The location of the center of mass of the Bodies contained in the tree. 
         /// </summary>
-        private Int32 Bodies = 0;
+        private Vector CenterOfMass = Vector.Zero;
+
+        /// <summary>
+        /// The total mass of the Bodies contained in the tree. 
+        /// </summary>
+        private Double TotalMass = 0;
+
+        /// <summary>
+        /// The number of Bodies in the tree. This is used to determine special cases when there are very few Bodies 
+        /// in the tree. 
+        /// </summary>
+        private Int32 TotalBodies = 0;
 
         /// <summary>
         /// The first Body added to the tree. This is used when the first Body must be added to subtrees
         /// at a later time. 
         /// </summary>
-        private Body FirstBody;
+        private Body FirstBody = null;
 
         /// <summary>
         /// Constructs an Octree with the given width located about the origin.
@@ -70,17 +68,13 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Constructs an Octree with the given location and width.
+        /// Initializes an Octree with the given location and width.
         /// </summary>
-        /// <param name="x">The x coordinate of the location of the new Octree.</param>
-        /// <param name="y">The y coordinate of the location of the new Octree.</param>
-        /// <param name="z">The z coordinate of the location of the new Octree.</param>
+        /// <param name="location">The location of the center of the new Octree.</param>
         /// <param name="width">The width of the new Octree.</param>
-        public Octree(Double x, Double y, Double z, Double width)
+        public Octree(Vector location, Double width)
             : this(width) {
-            X = CenterOfMass.X = x;
-            Y = CenterOfMass.Y = y;
-            Z = CenterOfMass.Z = z;
+            Location = CenterOfMass = location;
         }
 
         /// <summary>
@@ -89,16 +83,14 @@ namespace NBody {
         /// </summary>
         /// <param name="body">The Body to add to the tree.</param>
         public void Add(Body body) {
-            CenterOfMass.X = (Mass * CenterOfMass.X + body.Mass * body.X) / (Mass + body.Mass);
-            CenterOfMass.Y = (Mass * CenterOfMass.Y + body.Mass * body.Y) / (Mass + body.Mass);
-            CenterOfMass.Z = (Mass * CenterOfMass.Z + body.Mass * body.Z) / (Mass + body.Mass);
-            Mass += body.Mass;
-            Bodies++;
-            if (Bodies == 1)
+            CenterOfMass = (TotalMass * CenterOfMass + body.Mass * body.Location) / (TotalMass + body.Mass);
+            TotalMass += body.Mass;
+            TotalBodies++;
+            if (TotalBodies == 1)
                 FirstBody = body;
             else
                 AddToSubtree(body);
-            if (Bodies == 2)
+            if (TotalBodies == 2)
                 AddToSubtree(FirstBody);
         }
 
@@ -108,57 +100,36 @@ namespace NBody {
         /// </summary>
         /// <param name="body">The Body to add to a subtree.</param>
         private void AddToSubtree(Body body) {
+            Double subtreeWidth = Width / 2;
 
-            // Any subtrees will violate the width limit so don't create them.
-            if (Width < MinimumWidth * 2)
+            // Don't create subtrees if it violates the width limit.
+            if (subtreeWidth < MinimumWidth)
                 return;
 
+            if (Subtrees == null)
+                Subtrees = new Octree[8];
+
             // Determine which subtree the Body belongs in and add it to that subtree. 
-            if (body.Y < Y) {
-                if (body.X < X) {
-                    if (body.Z < Z) {
-                        if (SubtreeA == null)
-                            SubtreeA = new Octree(X - .25 * Width, Y - .25 * Width, Z - .25 * Width, .5 * Width);
-                        SubtreeA.Add(body);
-                    } else if (body.Z > Z) {
-                        if (SubtreeB == null)
-                            SubtreeB = new Octree(X - .25 * Width, Y - .25 * Width, Z + .25 * Width, .5 * Width);
-                        SubtreeB.Add(body);
+            Int32 subtreeIndex = 0;
+            for (Int32 i = -1; i <= 1; i += 2)
+                for (Int32 j = -1; j <= 1; j += 2)
+                    for (Int32 k = -1; k <= 1; k += 2) {
+                        Vector subtreeLocation = new Vector(Location.X + i * subtreeWidth / 2,
+                                                            Location.Y + j * subtreeWidth / 2,
+                                                            Location.Z + k * subtreeWidth / 2);
+
+                        // Determine if the body is contained within the bounds of the subtree under consideration. 
+                        if (subtreeLocation.X - subtreeWidth / 2 < body.Location.X && body.Location.X <= subtreeLocation.X + subtreeWidth / 2
+                            && subtreeLocation.Y - subtreeWidth / 2 < body.Location.Y && body.Location.Y <= subtreeLocation.Y + subtreeWidth / 2
+                            && subtreeLocation.Z - subtreeWidth / 2 < body.Location.Z && body.Location.Z <= subtreeLocation.Z + subtreeWidth / 2) {
+
+                            if (Subtrees[subtreeIndex] == null)
+                                Subtrees[subtreeIndex] = new Octree(subtreeLocation, subtreeWidth);
+                            Subtrees[subtreeIndex].Add(body);
+                            return;
+                        }
+                        subtreeIndex++;
                     }
-                } else {
-                    if (body.Z < Z) {
-                        if (SubtreeC == null)
-                            SubtreeC = new Octree(X + .25 * Width, Y - .25 * Width, Z - .25 * Width, .5 * Width);
-                        SubtreeC.Add(body);
-                    } else if (body.Z > Z) {
-                        if (SubtreeD == null)
-                            SubtreeD = new Octree(X + .25 * Width, Y - .25 * Width, Z + .25 * Width, .5 * Width);
-                        SubtreeD.Add(body);
-                    }
-                }
-            } else {
-                if (body.X < X) {
-                    if (body.Z < Z) {
-                        if (SubtreeE == null)
-                            SubtreeE = new Octree(X - .25 * Width, Y + .25 * Width, Z - .25 * Width, .5 * Width);
-                        SubtreeE.Add(body);
-                    } else if (body.Z > Z) {
-                        if (SubtreeF == null)
-                            SubtreeF = new Octree(X - .25 * Width, Y + .25 * Width, Z + .25 * Width, .5 * Width);
-                        SubtreeF.Add(body);
-                    }
-                } else {
-                    if (body.Z < Z) {
-                        if (SubtreeG == null)
-                            SubtreeG = new Octree(X + .25 * Width, Y + .25 * Width, Z - .25 * Width, .5 * Width);
-                        SubtreeG.Add(body);
-                    } else if (body.Z > Z) {
-                        if (SubtreeH == null)
-                            SubtreeH = new Octree(X + .25 * Width, Y + .25 * Width, Z + .25 * Width, .5 * Width);
-                        SubtreeH.Add(body);
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -166,18 +137,18 @@ namespace NBody {
         /// </summary>
         /// <param name="body">The Body to accelerate.</param>
         public void Accelerate(Body body) {
-            Double dx = CenterOfMass.X - body.X;
-            Double dy = CenterOfMass.Y - body.Y;
-            Double dz = CenterOfMass.Z - body.Z;
+            Double dx = CenterOfMass.X - body.Location.X;
+            Double dy = CenterOfMass.Y - body.Location.Y;
+            Double dz = CenterOfMass.Z - body.Location.Z;
 
             // Case 1. The tree contains only one Body and it isn't the Body to be accelerated. The second 
             //         condition (optimized for speed) determines if the Body to be accelerated lies outside 
             //         the bounds of the tree. If it does, it can't be the single Body so we perform the 
             //         acceleration. 
-            if (Bodies == 1 
-                && ((body.X - X) * (body.X - X) * 4 > Width * Width 
-                   || (body.Y - Y) * (body.Y - Y) * 4 > Width * Width 
-                   || (body.Z - Z) * (body.Z - Z) * 4 > Width * Width))
+            if (TotalBodies == 1
+                && ((body.Location.X - Location.X) * (body.Location.X - Location.X) * 4 > Width * Width
+                   || (body.Location.Y - Location.Y) * (body.Location.Y - Location.Y) * 4 > Width * Width
+                   || (body.Location.Z - Location.Z) * (body.Location.Z - Location.Z) * 4 > Width * Width))
                 PerformAcceleration(body, dx, dy, dz);
 
             // Case 2. The width to distance ratio is within Tolerance, so we perform the acceleration. This  
@@ -185,26 +156,12 @@ namespace NBody {
             else if (Width * Width < Tolerance * Tolerance * (dx * dx + dy * dy + dz * dz))
                 PerformAcceleration(body, dx, dy, dz);
 
-            // Case 3. We can't perform the acceleration, so we pass the Body on to the subtrees for a more 
-            //         precise calculation. 
-            else {
-                if (SubtreeA != null)
-                    SubtreeA.Accelerate(body);
-                if (SubtreeB != null)
-                    SubtreeB.Accelerate(body);
-                if (SubtreeC != null)
-                    SubtreeC.Accelerate(body);
-                if (SubtreeD != null)
-                    SubtreeD.Accelerate(body);
-                if (SubtreeE != null)
-                    SubtreeE.Accelerate(body);
-                if (SubtreeF != null)
-                    SubtreeF.Accelerate(body);
-                if (SubtreeG != null)
-                    SubtreeG.Accelerate(body);
-                if (SubtreeH != null)
-                    SubtreeH.Accelerate(body);
-            }
+            // Case 3. We can't perform the acceleration, so we try to pass the Body on to the subtrees. 
+            else
+                if (Subtrees != null)
+                    foreach (Octree subtree in Subtrees)
+                        if (subtree != null)
+                            subtree.Accelerate(body);
         }
 
         /// <summary>
@@ -224,7 +181,7 @@ namespace NBody {
             // Calculate a normalized acceleration value and multiply it with the displacement in each coordinate
             // to get that coordinate's acceleration componenet. 
             Double distance = Math.Sqrt(dx * dx + dy * dy + dz * dz);
-            Double normAcc = World.G * Mass / (distance * distance * distance);
+            Double normAcc = World.G * TotalMass / (distance * distance * distance);
 
             body.Acceleration.X += normAcc * dx;
             body.Acceleration.Y += normAcc * dy;

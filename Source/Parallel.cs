@@ -3,7 +3,12 @@ using System.Collections.Generic;
 using System.Threading;
 
 namespace NBody {
+
+    /// <summary>
+    /// Defines methods for easy parallel execution of code. 
+    /// </summary>
     public class Parallel {
+
         /// <summary>
         /// Defines the number of threads to use. This is given a value of 2 * (processors) to take 
         /// advantage of hyperthreading if applicable. 
