@@ -361,7 +361,7 @@ namespace NBody {
         /// </summary>
         private void UpdateCameraZ() {
             CameraZ += CameraZVelocity * CameraZ;
-            CameraZ = Math.Max(0, CameraZ);
+            CameraZ = Math.Max(1, CameraZ);
             CameraZVelocity *= CameraZEasing;
 
             LatticeRenderer.Camera = new Vector(0, 0, CameraZ);
@@ -382,9 +382,11 @@ namespace NBody {
                 SolidBrush brush = new SolidBrush(Color.White);
 
                 // Draw the Bodies. 
-                foreach (Body b in Bodies)
-                    if (b != null)
-                        LatticeRenderer.FillCircle2D(g, brush, b.Location, b.Radius);
+                for (Int32 i = 0; i < Bodies.Length; i++) {
+                    Body body = Bodies[i];
+                    if (body != null)
+                        LatticeRenderer.FillCircle2D(g, brush, body.Location, body.Radius);
+                }
 
                 brush = new SolidBrush(Color.FromArgb(50, Color.White));
                 g.DrawString("DRAW FPS: " + Math.Round(DrawFps), new Font("Arial", 8), brush, Width - 280, 10);
@@ -397,7 +399,9 @@ namespace NBody {
                 DrawFps = DrawFps > 3e3 ? 60 : DrawFps;
                 DrawStopwatch.Reset();
                 DrawStopwatch.Start();
-            } catch (Exception) { }
+            } catch (Exception x) {
+                Console.WriteLine(x);
+            }
         }
 
         /// <summary>
