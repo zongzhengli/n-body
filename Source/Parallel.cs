@@ -85,8 +85,8 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Invokes the given function in parallel. That is, Parallel.Invoke(f1, f2, ...) is analogous
-        /// to calling f1, f2, ... in succession. 
+        /// Invokes the given parameterless functions in parallel. That is, Parallel.Invoke(f1, f2, ...) 
+        /// is analogous to the statement f1(); f2(); .... 
         /// </summary>
         /// <param name="body">The functions to invoke.</param>
         public static void Invoke(params MethodDelegate[] body) {

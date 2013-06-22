@@ -20,7 +20,7 @@ namespace NBody {
             // mass = volume and use the inverse of the equation for the volume of a sphere given its radius 
             // to solve for the radius. The end result is arbitrarily scaled and added to a constant so the 
             // Body is generally visible for drawing. 
-            return 10 * Math.Pow(3 * mass / (4 * Math.PI), 1 / 3.0) + 1;
+            return 10 * Math.Pow(3 * mass / (4 * Math.PI), 1 / 3.0) + 10;
         }
 
         /// <summary>
@@ -46,7 +46,11 @@ namespace NBody {
         /// <summary>
         /// The radius of the Body. 
         /// </summary>
-        public Double Radius;
+        public Double Radius {
+            get {
+                return GetRadius(Mass);
+            }
+        }
 
         /// <summary>
         /// Initializes a Body with the given mass. All other properties are assigned default values of zero. 
@@ -54,7 +58,6 @@ namespace NBody {
         /// <param name="mass">The mass of the new Body.</param>
         public Body(Double mass) {
             Mass = mass;
-            Radius = GetRadius(mass);
         }
 
         /// <summary>
@@ -71,13 +74,27 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Updates the properties of the body. This method should be invoked at each time step. 
+        /// Updates the properties of the body such as location, velocity, and applied acceleration. This method should be 
+        /// invoked at each time step. 
         /// </summary>
         public void Update() {
-            Velocity += Acceleration;
             Double speed = Velocity.Magnitude();
-            if (speed > World.C)
-                Velocity *= World.C / speed;
+            if (speed > World.C) {
+                Velocity = World.C * Velocity.Unit();
+                speed = World.C;
+            }
+
+            if (speed == 0)
+                Velocity += Acceleration;
+            else {
+
+                // Apply relativistic velocity addition. 
+                Vector parallelAcc = Vector.Projection(Acceleration, Velocity);
+                Vector orthogonalAcc = Vector.Rejection(Acceleration, Velocity);
+                Double alpha = Math.Sqrt(1 - Math.Pow(speed / World.C, 2));
+                Velocity = (Velocity + parallelAcc + alpha * orthogonalAcc) / (1 + Vector.Dot(Velocity, Acceleration) / (World.C * World.C));
+            }
+
             Location += Velocity;
             Acceleration = Vector.Zero;
         }

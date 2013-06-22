@@ -85,7 +85,7 @@ namespace NBody {
         /// <summary>
         /// An instance of the Renderer for the Lattice library. This is used to draw 3D graphics. 
         /// </summary>
-        private Renderer LatticeRenderer = new Renderer();
+        private Renderer Renderer = new Renderer();
 
         [STAThread]
         static void Main() {
@@ -132,7 +132,7 @@ namespace NBody {
             // camera. 
             CenterToScreen();
             new Settings().Show();
-            LatticeRenderer.FOV = 1e9;
+            Renderer.FOV = 1e9;
         }
 
         /// <summary>
@@ -218,13 +218,20 @@ namespace NBody {
                         break;
                     case SystemType.MassiveBody: {
                             Bodies[0] = new Body(Vector.Zero, 1e10);
-                            for (Int32 i = 1; i < Bodies.Length; i++) {
-                                Double d = PseudoRandom.Double(1e6) + Bodies[0].Radius;
+                            Vector l1 = PseudoRandom.Vector(8e3) + new Vector(-3e5, 1e5 + Bodies[0].Radius, 0);
+                            Double m1 = 1e6;
+                            Vector v1 = new Vector(2e3, 0, 0);
+                            Bodies[1] = new Body(l1, m1, v1);
+                            for (Int32 i = 2; i < Bodies.Length; i++) {
+                                Double d = PseudoRandom.Double(2e5) + Bodies[1].Radius;
                                 Double a = PseudoRandom.Double(Math.PI * 2);
-                                Vector l = new Vector(Math.Cos(a) * d, PseudoRandom.Double(-2e4, 2e4), Math.Sin(a) * d);
-                                l.Y -= 1.4e5;
-                                Double m = PseudoRandom.Double(1e6) + 3e4;
-                                Vector v = 4e2 * l.To(Vector.Zero).Unit();
+                                Double h = Math.Min(2e8 / d, 2e4);
+                                Vector l = (new Vector(Math.Cos(a) * d, PseudoRandom.Double(-h, h), Math.Sin(a) * d) + Bodies[1].Location);
+                                Double m = PseudoRandom.Double(5e5) + 1e5;
+                                Double s = Math.Sqrt(Bodies[1].Mass * Bodies[1].Mass * G / ((Bodies[1].Mass + m) * d));
+                                Vector v = Vector.Cross(l, Vector.YAxis).Unit() * s + v1;
+                                l = l.Rotate(0, 0, 0, 1, 1, 1, Math.PI * .1);
+                                v = v.Rotate(0, 0, 0, 1, 1, 1, Math.PI * .1);
                                 Bodies[i] = new Body(l, m, v);
                             }
                         }
@@ -364,8 +371,8 @@ namespace NBody {
             CameraZ = Math.Max(1, CameraZ);
             CameraZVelocity *= CameraZEasing;
 
-            LatticeRenderer.Camera = new Vector(0, 0, CameraZ);
-            LatticeRenderer.Origin = new Point(Width / 2, Height / 2);
+            Renderer.Camera = new Vector(0, 0, CameraZ);
+            Renderer.Origin = new Point(Width / 2, Height / 2);
         }
 
         /// <summary>
@@ -385,7 +392,7 @@ namespace NBody {
                 for (Int32 i = 0; i < Bodies.Length; i++) {
                     Body body = Bodies[i];
                     if (body != null)
-                        LatticeRenderer.FillCircle2D(g, brush, body.Location, body.Radius);
+                        Renderer.FillCircle2D(g, brush, body.Location, body.Radius);
                 }
 
                 brush = new SolidBrush(Color.FromArgb(50, Color.White));
