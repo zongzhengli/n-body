@@ -42,6 +42,7 @@
             this.functionsTab = new System.Windows.Forms.TabPage();
             this.label1 = new System.Windows.Forms.Label();
             this.pause = new System.Windows.Forms.Button();
+            this.resetCamera = new System.Windows.Forms.Button();
             this.tabControl.SuspendLayout();
             this.systemsTab.SuspendLayout();
             this.parametersTab.SuspendLayout();
@@ -222,6 +223,7 @@
             // 
             // functionsTab
             // 
+            this.functionsTab.Controls.Add(this.resetCamera);
             this.functionsTab.Controls.Add(this.label1);
             this.functionsTab.Controls.Add(this.pause);
             this.functionsTab.Location = new System.Drawing.Point(4, 22);
@@ -250,6 +252,16 @@
             this.pause.Text = "Pause";
             this.pause.UseVisualStyleBackColor = true;
             this.pause.Click += new System.EventHandler(this.PauseClick);
+            // 
+            // resetCamera
+            // 
+            this.resetCamera.Location = new System.Drawing.Point(113, 28);
+            this.resetCamera.Name = "resetCamera";
+            this.resetCamera.Size = new System.Drawing.Size(100, 23);
+            this.resetCamera.TabIndex = 12;
+            this.resetCamera.Text = "Reset Camera";
+            this.resetCamera.UseVisualStyleBackColor = true;
+            this.resetCamera.Click += new System.EventHandler(this.ResetCameraClick);
             // 
             // Settings
             // 
@@ -293,5 +305,6 @@
         private System.Windows.Forms.TabPage functionsTab;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button pause;
+        private System.Windows.Forms.Button resetCamera;
     }
 }

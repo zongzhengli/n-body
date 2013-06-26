@@ -16,6 +16,25 @@ namespace NBody {
     /// The main window of the application and acts as the "world" of the simulation. 
     /// </summary>
     class World : Form {
+
+
+        /// <summary>
+        /// The property giving access to the single World instance. 
+        /// </summary>
+        public static World Instance {
+            get {
+                if (instance == null) {
+                    instance = new World();
+                }
+                return instance;
+            }
+        }
+
+        /// <summary>
+        /// The field the holds the single World instance. 
+        /// </summary>
+        public static World instance = null;
+
         /// <summary>
         /// The gravitational constant. 
         /// </summary>
@@ -39,26 +58,27 @@ namespace NBody {
         /// <summary>
         /// The collection of Bodies in the simulation. 
         /// </summary>
-        public static Body[] Bodies = new Body[1000];
+        public Body[] Bodies = new Body[1000];
 
         /// <summary>
         /// The lock for any actions that modify the Bodies collection. 
         /// </summary>
-        private static readonly Object BodyLock = new Object();
+        private readonly Object BodyLock = new Object();
 
         /// <summary>
         /// Determines whether the simulation is active or paused. 
         /// </summary>
-        public static Boolean Active = true;
+        public Boolean Active = true;
 
         /// <summary>
         /// Determines the properties of the z coordinate of the camera. These are used to when the mouse is 
         /// scrolled and the camera moves along the z axis. 
         /// </summary>
-        private Double CameraZ = 1e6;
-        private Double CameraZVelocity = 0;
-        private Double CameraZAcceleration = -2e-4;
+        private const Double CameraZDefault = 1e6;
+        private const Double CameraZAcceleration = -2e-4;
         private const Double CameraZEasing = .94;
+        private Double CameraZ = CameraZDefault;
+        private Double CameraZVelocity = 0;
 
         /// <summary>
         /// Represents the current location of the mouse. 
@@ -91,7 +111,7 @@ namespace NBody {
         static void Main() {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new World());
+            Application.Run(World.Instance);
         }
 
         /// <summary>
@@ -115,7 +135,7 @@ namespace NBody {
             // Start draw thread. 
             new Thread(new ThreadStart(delegate {
                 while (true) {
-                    UpdateCameraZ();
+                    UpdateCamera();
                     Invalidate();
                     Thread.Sleep(DrawInterval);
                 }
@@ -142,7 +162,6 @@ namespace NBody {
             while (true) {
                 if (Active)
                     lock (BodyLock) {
-
                         // Determine half the length of the cube containing all the Bodies. 
                         Double halfLength = 0;
                         foreach (Body body in Bodies)
@@ -174,7 +193,7 @@ namespace NBody {
 
                 // Update simluation FPS counter.
                 SimStopwatch.Stop();
-                SimFps += (1000D / SimStopwatch.Elapsed.TotalMilliseconds - SimFps) * .1;
+                SimFps += (1000D / SimStopwatch.Elapsed.TotalMilliseconds - SimFps) * .2;
                 SimFps = SimFps > 1e7 ? 60 : SimFps;
                 SimStopwatch.Reset();
                 SimStopwatch.Start();
@@ -185,7 +204,7 @@ namespace NBody {
         /// Generates the specified gravitational system. 
         /// </summary>
         /// <param name="type">The system type to generate.</param>
-        public static void Generate(SystemType type) {
+        public void Generate(SystemType type) {
 
             // This method needs to be cleaned up. There are lots of arbitrary constants, unclear variable names, and low
             // quality code. 
@@ -354,7 +373,7 @@ namespace NBody {
         /// <param name="point">The starting point for the axis of rotation.</param>
         /// <param name="direction">The direction for the axis of rotation</param>
         /// <param name="angle">The angle to rotate by.</param>
-        public static void Rotate(Vector point, Vector direction, Double angle) {
+        public void Rotate(Vector point, Vector direction, Double angle) {
             lock (BodyLock) {
                 Parallel.ForEach(Bodies, body => {
                     if (body != null)
@@ -366,13 +385,21 @@ namespace NBody {
         /// <summary>
         /// Updates the camera properties to allow movement through the z axis. 
         /// </summary>
-        private void UpdateCameraZ() {
+        private void UpdateCamera() {
             CameraZ += CameraZVelocity * CameraZ;
             CameraZ = Math.Max(1, CameraZ);
             CameraZVelocity *= CameraZEasing;
 
             Renderer.Camera = new Vector(0, 0, CameraZ);
             Renderer.Origin = new Point(Width / 2, Height / 2);
+        }
+
+        /// <summary>
+        /// Resets the camera to its initial state. 
+        /// </summary>
+        public void ResetCamera() {
+            CameraZ = CameraZDefault;
+            CameraZVelocity = 0;
         }
 
         /// <summary>
@@ -396,13 +423,13 @@ namespace NBody {
                 }
 
                 brush = new SolidBrush(Color.FromArgb(50, Color.White));
-                g.DrawString("DRAW FPS: " + Math.Round(DrawFps), new Font("Arial", 8), brush, Width - 280, 10);
-                g.DrawString("SIMULATION FPS: " + Math.Round(SimFps), new Font("Arial", 8), brush, Width - 170, 10);
+                g.DrawString("DRAW FPS: " + Math.Round(DrawFps * 10) / 10D, new Font("Arial", 8), brush, Width - 280, 10);
+                g.DrawString("SIMULATION FPS: " + Math.Round(SimFps * 10) / 10D, new Font("Arial", 8), brush, Width - 170, 10);
                 g.DrawString("ZONG ZHENG LI", new Font("Arial", 8), brush, new Point(Width - 120, Height - 60));
 
                 // Update draw FPS counter. 
                 DrawStopwatch.Stop();
-                DrawFps += (1000D / DrawStopwatch.Elapsed.TotalMilliseconds - DrawFps) * .1;
+                DrawFps += (1000D / DrawStopwatch.Elapsed.TotalMilliseconds - DrawFps) * .2;
                 DrawFps = DrawFps > 3e3 ? 60 : DrawFps;
                 DrawStopwatch.Reset();
                 DrawStopwatch.Start();

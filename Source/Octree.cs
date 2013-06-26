@@ -172,12 +172,7 @@ namespace NBody {
         /// <param name="dy">The difference between the tree's center of mass and the Body's position in the y axis.</param>
         /// <param name="dz">The difference between the tree's center of mass and the Body's position in the z axis.</param>
         private void PerformAcceleration(Body body, Double dx, Double dy, Double dz) {
-
-            // Don't accelerate the Body if the center of mass is within its radius, to prevent crazy slingshot. 
-            // This condition is an optimized equivalent of (distance) < body.Radius. 
-            if (dx * dx + dy * dy + dz * dz < body.Radius * body.Radius)
-                return;
-
+            
             // Calculate a normalized acceleration value and multiply it with the displacement in each coordinate
             // to get that coordinate's acceleration componenet. 
             Double distance = Math.Sqrt(dx * dx + dy * dy + dz * dz);

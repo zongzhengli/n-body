@@ -15,35 +15,35 @@ namespace NBody {
         }
 
         private void NoneClick(Object sender, EventArgs e) {
-            World.Generate(SystemType.None);
+            World.Instance.Generate(SystemType.None);
         }
 
         private void SlowParticlesClick(Object sender, EventArgs e) {
-            World.Generate(SystemType.SlowParticles);
+            World.Instance.Generate(SystemType.SlowParticles);
         }
 
         private void FastParticlesClick(Object sender, EventArgs e) {
-            World.Generate(SystemType.FastParticles);
+            World.Instance.Generate(SystemType.FastParticles);
         }
 
         private void MassiveBodyClick(Object sender, EventArgs e) {
-            World.Generate(SystemType.MassiveBody);
+            World.Instance.Generate(SystemType.MassiveBody);
         }
 
         private void OrbitalSystemClick(Object sender, EventArgs e) {
-            World.Generate(SystemType.OrbitalSystem);
+            World.Instance.Generate(SystemType.OrbitalSystem);
         }
 
         private void BinarySystemClick(Object sender, EventArgs e) {
-            World.Generate(SystemType.BinarySystem);
+            World.Instance.Generate(SystemType.BinarySystem);
         }
 
         private void PlanetarySystemClick(Object sender, EventArgs e) {
-            World.Generate(SystemType.PlanetarySystem);
+            World.Instance.Generate(SystemType.PlanetarySystem);
         }
 
         private void DistributionTestClick(Object sender, EventArgs e) {
-            World.Generate(SystemType.DistributionTest);
+            World.Instance.Generate(SystemType.DistributionTest);
         }
 
         private void ChangeGClick(Object sender, EventArgs e) {
@@ -56,12 +56,16 @@ namespace NBody {
 
         private void ChangeNClick(Object sender, EventArgs e) {
             Int32 n;
-            Int32.TryParse(InputBox.Show("Please specify a value for N.", World.Bodies.Length.ToString()), out n);
-            World.Bodies = World.Bodies.Length != n ? new Body[n] : World.Bodies;
+            Int32.TryParse(InputBox.Show("Please specify a value for N.", World.Instance.Bodies.Length.ToString()), out n);
+            World.Instance.Bodies = World.Instance.Bodies.Length != n ? new Body[n] : World.Instance.Bodies;
         }
 
         private void PauseClick(Object sender, EventArgs e) {
-            World.Active = !World.Active;
+            World.Instance.Active = !World.Instance.Active;
+        }
+
+        private void ResetCameraClick(Object sender, EventArgs e) {
+            World.Instance.ResetCamera();
         }
     }
 }
