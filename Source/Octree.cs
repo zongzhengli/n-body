@@ -114,9 +114,7 @@ namespace NBody {
             for (Int32 i = -1; i <= 1; i += 2)
                 for (Int32 j = -1; j <= 1; j += 2)
                     for (Int32 k = -1; k <= 1; k += 2) {
-                        Vector subtreeLocation = new Vector(Location.X + i * subtreeWidth / 2,
-                                                            Location.Y + j * subtreeWidth / 2,
-                                                            Location.Z + k * subtreeWidth / 2);
+                        Vector subtreeLocation = Location + (subtreeWidth / 2) * new Vector(i, j, k);
 
                         // Determine if the body is contained within the bounds of the subtree under consideration. 
                         if (subtreeLocation.X - subtreeWidth / 2 < body.Location.X && body.Location.X <= subtreeLocation.X + subtreeWidth / 2
@@ -147,8 +145,8 @@ namespace NBody {
             //         acceleration. 
             if (TotalBodies == 1
                 && ((body.Location.X - Location.X) * (body.Location.X - Location.X) * 4 > Width * Width
-                   || (body.Location.Y - Location.Y) * (body.Location.Y - Location.Y) * 4 > Width * Width
-                   || (body.Location.Z - Location.Z) * (body.Location.Z - Location.Z) * 4 > Width * Width))
+                    || (body.Location.Y - Location.Y) * (body.Location.Y - Location.Y) * 4 > Width * Width
+                    || (body.Location.Z - Location.Z) * (body.Location.Z - Location.Z) * 4 > Width * Width))
                 PerformAcceleration(body, dx, dy, dz);
 
             // Case 2. The width to distance ratio is within Tolerance, so we perform the acceleration. This  
@@ -172,7 +170,7 @@ namespace NBody {
         /// <param name="dy">The difference between the tree's center of mass and the Body's position in the y axis.</param>
         /// <param name="dz">The difference between the tree's center of mass and the Body's position in the z axis.</param>
         private void PerformAcceleration(Body body, Double dx, Double dy, Double dz) {
-            
+
             // Calculate a normalized acceleration value and multiply it with the displacement in each coordinate
             // to get that coordinate's acceleration componenet. 
             Double distance = Math.Sqrt(dx * dx + dy * dy + dz * dz);
