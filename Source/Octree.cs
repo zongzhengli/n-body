@@ -10,11 +10,17 @@ namespace NBody {
     class Octree {
 
         /// <summary>
-        /// Defines the accuracy-speed tradeoff value of the simulation. The acceleration of a Body by the Octree 
-        /// is only calculated when the ratio of the width to distance (from the tree's center of mass to the Body) 
-        /// ratio is less than this.
+        /// Defines the tolerance of the mass grouping approximation in the simulation. The acceleration of a Body 
+        /// by the Octree is only calculated when the ratio of the width to distance (from the tree's center of 
+        /// mass to the Body) ratio is less than this.
         /// </summary>
         private const Double Tolerance = .5;
+
+        /// <summary>
+        /// Defines the softening factor for the acceleration equation. This dampens the effect of the slingshot 
+        /// effect during close encounters of Bodies. 
+        /// </summary>
+        private const Double Epsilon = 700;
 
         /// <summary>
         /// Defines the minimum width of an Octree. Subtrees are not created if their width would be smaller than 
@@ -117,9 +123,9 @@ namespace NBody {
                         Vector subtreeLocation = Location + (subtreeWidth / 2) * new Vector(i, j, k);
 
                         // Determine if the body is contained within the bounds of the subtree under consideration. 
-                        if (subtreeLocation.X - subtreeWidth / 2 < body.Location.X && body.Location.X <= subtreeLocation.X + subtreeWidth / 2
-                            && subtreeLocation.Y - subtreeWidth / 2 < body.Location.Y && body.Location.Y <= subtreeLocation.Y + subtreeWidth / 2
-                            && subtreeLocation.Z - subtreeWidth / 2 < body.Location.Z && body.Location.Z <= subtreeLocation.Z + subtreeWidth / 2) {
+                        if (Math.Abs(subtreeLocation.X - body.Location.X) <= subtreeWidth / 2
+                            && Math.Abs(subtreeLocation.Y - body.Location.Y) <= subtreeWidth / 2
+                            && Math.Abs(subtreeLocation.Z - body.Location.Z) <= subtreeWidth / 2) {
 
                             if (Subtrees[subtreeIndex] == null)
                                 Subtrees[subtreeIndex] = new Octree(subtreeLocation, subtreeWidth);
@@ -155,11 +161,10 @@ namespace NBody {
                 PerformAcceleration(body, dx, dy, dz);
 
             // Case 3. We can't perform the acceleration, so we try to pass the Body on to the subtrees. 
-            else
-                if (Subtrees != null)
-                    foreach (Octree subtree in Subtrees)
-                        if (subtree != null)
-                            subtree.Accelerate(body);
+            else if (Subtrees != null)
+                foreach (Octree subtree in Subtrees)
+                    if (subtree != null)
+                        subtree.Accelerate(body);
         }
 
         /// <summary>
@@ -173,7 +178,7 @@ namespace NBody {
 
             // Calculate a normalized acceleration value and multiply it with the displacement in each coordinate
             // to get that coordinate's acceleration componenet. 
-            Double distance = Math.Sqrt(dx * dx + dy * dy + dz * dz);
+            Double distance = Math.Sqrt(dx * dx + dy * dy + dz * dz + Epsilon * Epsilon);
             Double normAcc = World.G * TotalMass / (distance * distance * distance);
 
             body.Acceleration.X += normAcc * dx;
