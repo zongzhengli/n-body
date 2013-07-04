@@ -13,13 +13,13 @@ namespace NBody {
     enum SystemType { None, SlowParticles, FastParticles, MassiveBody, OrbitalSystem, BinarySystem, PlanetarySystem, DistributionTest };
 
     /// <summary>
-    /// The main window of the application and acts as the "world" of the simulation. 
+    /// The main window of the application and the "world" of the simulation. 
     /// </summary>
     class World : Form {
 
 
         /// <summary>
-        /// The property giving access to the single World instance. 
+        /// The accessor for the World instance. 
         /// </summary>
         public static World Instance {
             get {
@@ -31,7 +31,7 @@ namespace NBody {
         }
 
         /// <summary>
-        /// The field the holds the single World instance. 
+        /// The World instance. 
         /// </summary>
         public static World instance = null;
 
@@ -46,7 +46,7 @@ namespace NBody {
         public static Double C = 1e4;
 
         /// <summary>
-        /// The target number of milliseconds in between steps in the simulation. 
+        /// The target number of milliseconds between steps in the simulation. 
         /// </summary>
         private const Int32 SimInterval = 33;
 
@@ -61,7 +61,7 @@ namespace NBody {
         public Body[] Bodies = new Body[1000];
 
         /// <summary>
-        /// The lock for any actions that modify the Bodies collection. 
+        /// The lock that must be held to modify the Bodies collection. 
         /// </summary>
         private readonly Object BodyLock = new Object();
 
@@ -71,39 +71,67 @@ namespace NBody {
         public Boolean Active = true;
 
         /// <summary>
-        /// Determines the properties of the z coordinate of the camera. These are used to when the mouse is 
-        /// scrolled and the camera moves along the z axis. 
+        /// The camera field of view. 
+        /// </summary>
+        private const Double CameraFOV = 1e9;
+
+        /// <summary>
+        /// The default value for the camera's position on the z-axis. 
         /// </summary>
         private const Double CameraZDefault = 1e6;
+
+        /// <summary>
+        /// The acceleration constant for camera scrolling. 
+        /// </summary>
         private const Double CameraZAcceleration = -2e-4;
+
+        /// <summary>
+        /// The easing factor for camera scrolling. 
+        /// </summary>
         private const Double CameraZEasing = .94;
+
+        /// <summary>
+        /// The camera's position on the z-axis. 
+        /// </summary>
         private Double CameraZ = CameraZDefault;
+
+        /// <summary>
+        /// The camera's velocity along the z-axis. 
+        /// </summary>
         private Double CameraZVelocity = 0;
 
         /// <summary>
-        /// Represents the current location of the mouse. 
+        /// Gives the current location of the mouse. 
         /// </summary>
         private Point MouseLocation = new Point();
 
         /// <summary>
-        /// Represents whether a mouse button is pressed down. 
+        /// Gives whether a mouse button is pressed down. 
         /// </summary>
         private Boolean MouseIsDown = false;
 
         /// <summary>
-        /// Stopwatches for timing purposes. 
+        /// The stopwatch for the simulation FPS counter. 
         /// </summary>
         private Stopwatch SimStopwatch = new Stopwatch();
+
+        /// <summary>
+        /// The stopwatch for the drawing FPS counter. 
+        /// </summary>
         private Stopwatch DrawStopwatch = new Stopwatch();
 
         /// <summary>
-        /// These are FPS counters update at each step. 
+        /// The simulation FPS counter. 
         /// </summary>
         private Double SimFps;
+
+        /// <summary>
+        /// The drawing FPS counter. 
+        /// </summary>
         private Double DrawFps;
 
         /// <summary>
-        /// An instance of the Renderer for the Lattice library. This is used to draw 3D graphics. 
+        /// The Renderer instance used to draw 3D graphics. 
         /// </summary>
         private Renderer Renderer = new Renderer();
 
@@ -115,12 +143,12 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Initializes the World. This sets window properties and other default values, starts threads, and 
-        /// shows the Settings window. 
+        /// Constructs a World by initializing window properties, starting draw and 
+        /// simulation threads, and displaying the Settings window. 
         /// </summary>
         public World() {
 
-            // Set window settings and event handlers. 
+            // Initialize window settings and event handlers. 
             ClientSize = new Size(1000, 500);
             Text = "N-Body";
 
@@ -148,11 +176,12 @@ namespace NBody {
                 IsBackground = true
             }.Start();
 
-            // Center the window, start the Settings window, and set the initial field of value for the 
-            // camera. 
+            // Center the window and dispaly the Settings window.
             CenterToScreen();
             new Settings().Show();
-            Renderer.FOV = 1e9;
+
+            // Initialize the camera field of view. 
+            Renderer.FOV = CameraFOV;
         }
 
         /// <summary>
@@ -162,6 +191,7 @@ namespace NBody {
             while (true) {
                 if (Active)
                     lock (BodyLock) {
+
                         // Determine half the length of the cube containing all the Bodies. 
                         Double halfLength = 0;
                         foreach (Body body in Bodies)
@@ -172,8 +202,8 @@ namespace NBody {
                                 halfLength = Math.Max(Math.Abs(body.Location.Z), halfLength);
                             }
 
-                        // Initialize the root tree and add the Bodies. The root tree needs to be slightly larger 
-                        // than twice the determined half length. 
+                        // Initialize the root tree and add the Bodies. The root tree needs to be 
+                        // slightly larger than twice the determined half length. 
                         Octree tree = new Octree(2.1 * halfLength);
                         foreach (Body body in Bodies)
                             if (body != null)
@@ -191,7 +221,7 @@ namespace NBody {
                 if (elapsed < SimInterval)
                     Thread.Sleep(SimInterval);
 
-                // Update simluation FPS counter.
+                // Update the simluation FPS counter.
                 SimStopwatch.Stop();
                 SimFps += (1000D / SimStopwatch.Elapsed.TotalMilliseconds - SimFps) * .2;
                 SimFps = SimFps > 1e7 ? 60 : SimFps;
@@ -206,8 +236,7 @@ namespace NBody {
         /// <param name="type">The system type to generate.</param>
         public void Generate(SystemType type) {
 
-            // This method needs to be cleaned up. There are lots of arbitrary constants, unclear variable names, and low
-            // quality code. 
+            // TODO: improve the low quality code in this method.  
             lock (BodyLock) {
                 switch (type) {
                     case SystemType.None:
@@ -268,7 +297,7 @@ namespace NBody {
                             }
                         }
                         break;
-                    // This case exhibits especially terrible code. Needs to be cleaned up. 
+                    // TODO: thoroughly clean up the code in this case. 
                     case SystemType.BinarySystem: {
                             Double m1 = PseudoRandom.Double(9e9) + 1e9;
                             Double m2 = PseudoRandom.Double(9e9) + 1e9;
@@ -296,7 +325,7 @@ namespace NBody {
                             }
                         }
                         break;
-                    // This case exhibits especially terrible code. Needs to be cleaned up. 
+                    // TODO: thoroughly clean up the code in this case. 
                     case SystemType.PlanetarySystem: {
                             Bodies[0] = new Body(1e10);
                             Int32 pn = PseudoRandom.Int32(10) + 5;

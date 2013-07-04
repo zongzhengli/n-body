@@ -16,10 +16,10 @@ namespace NBody {
         /// <returns>The radius defined for the given mass value.</returns>
         public static Double GetRadius(Double mass) {
 
-            // We assume all Bodies have the same density so volume is directly proportion to mass. We let 
-            // mass = volume and use the inverse of the equation for the volume of a sphere given its radius 
-            // to solve for the radius. The end result is arbitrarily scaled and added to a constant so the 
-            // Body is generally visible for drawing. 
+            // We assume all Bodies have the same density so volume is directly 
+            // proportion to mass. Then we use the inverse of the equation for the 
+            // volume of a sphere to solve for the radius. The end result is arbitrarily 
+            // scaled and added to a constant so the Body is generally visible. 
             return 10 * Math.Pow(3 * mass / (4 * Math.PI), 1 / 3.0) + 10;
         }
 
@@ -53,7 +53,8 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Initializes a Body with the given mass. All other properties are assigned default values of zero. 
+        /// Constructs a Body with the given mass. All other properties are assigned 
+        /// default values of zero. 
         /// </summary>
         /// <param name="mass">The mass of the new Body.</param>
         public Body(Double mass) {
@@ -61,8 +62,9 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Initializes a Body with the given location, mass, and velocity. Unspecified properties are assigned 
-        /// default values of zero except for mass, which is given a value of 1e6.
+        /// Initializes a Body with the given location, mass, and velocity. 
+        /// Unspecified properties are assigned default values of zero except for
+        /// mass, which is given a value of 1e6.
         /// </summary>
         /// <param name="location">The location of the new Body.</param>
         /// <param name="mass">The mass of the new Body.</param>
@@ -74,8 +76,8 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Updates the properties of the body such as location, velocity, and applied acceleration. This method should be 
-        /// invoked at each time step. 
+        /// Updates the properties of the body such as location, velocity, and 
+        /// applied acceleration. This method should be invoked at each time step. 
         /// </summary>
         public void Update() {
             Double speed = Velocity.Magnitude();
@@ -108,8 +110,9 @@ namespace NBody {
         public void Rotate(Vector point, Vector direction, Double angle) {
             Location = Location.Rotate(point, direction, angle);
 
-            // To rotate velocity and acceleration we have to adjust for the starting point for the axis of rotation. 
-            // This way the vectors are effectively rotated about their own starting points. 
+            // To rotate velocity and acceleration we have to adjust for the starting 
+            // point for the axis of rotation. This way the vectors are effectively 
+            // rotated about their own starting points. 
             Velocity += point;
             Velocity = Velocity.Rotate(point, direction, angle);
             Velocity -= point;

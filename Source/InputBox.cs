@@ -31,7 +31,8 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Displays the InputBox with the given message and default text in the input field. 
+        /// Displays the InputBox with the given message and default text in the 
+        /// input field. 
         /// </summary>
         /// <param name="message">The message to display.</param>
         /// <param name="defaultInputText">The default text in the the input field.</param>
@@ -44,7 +45,8 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Initializes and displays a new InputBox witih the given message and default text in the input field. 
+        /// Initializes and displays a new InputBox witih the given message and 
+        /// default text in the input field. 
         /// </summary>
         /// <param name="message">The message to display.</param>
         /// <param name="defaultInputText">The default text in the the input field.</param>
