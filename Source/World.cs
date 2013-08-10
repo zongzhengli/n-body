@@ -17,7 +17,6 @@ namespace NBody {
     /// </summary>
     class World : Form {
 
-
         /// <summary>
         /// The accessor for the World instance. 
         /// </summary>
@@ -151,14 +150,14 @@ namespace NBody {
             // Initialize window settings and event handlers. 
             ClientSize = new Size(1000, 500);
             Text = "N-Body";
+            DoubleBuffered = true;
+            BackColor = Color.Black;
 
             MouseDown += new MouseEventHandler(MouseDownEvent);
             MouseUp += new MouseEventHandler(MouseUpEvent);
             MouseMove += new MouseEventHandler(MouseMoveEvent);
             MouseWheel += new MouseEventHandler(MouseWheelEvent);
             Paint += new PaintEventHandler(DrawEvent);
-            DoubleBuffered = true;
-            BackColor = Color.Black;
 
             // Start draw thread. 
             new Thread(new ThreadStart(delegate {
@@ -176,7 +175,7 @@ namespace NBody {
                 IsBackground = true
             }.Start();
 
-            // Center the window and dispaly the Settings window.
+            // Center the window and display the Settings window.
             CenterToScreen();
             new Settings().Show();
 
