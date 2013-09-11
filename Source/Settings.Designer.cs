@@ -210,7 +210,7 @@
             this.changeC.TabIndex = 12;
             this.changeC.Text = "Change C";
             this.changeC.UseVisualStyleBackColor = true;
-            this.changeC.Click += new System.EventHandler(this.changeCClick);
+            this.changeC.Click += new System.EventHandler(this.ChangeCClick);
             // 
             // parametersLabel
             // 

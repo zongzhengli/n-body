@@ -50,14 +50,14 @@ namespace NBody {
             Double.TryParse(InputBox.Show("Please specify a value for G.", World.G.ToString()), out World.G);
         }
 
-        private void changeCClick(Object sender, EventArgs e) {
+        private void ChangeCClick(Object sender, EventArgs e) {
             Double.TryParse(InputBox.Show("Please specify a value for C.", World.C.ToString()), out World.C);
         }
 
         private void ChangeNClick(Object sender, EventArgs e) {
             Int32 n;
-            Int32.TryParse(InputBox.Show("Please specify a value for N.", World.Instance.BodiesCount.ToString()), out n);
-            World.Instance.BodiesCount = n;
+            Int32.TryParse(InputBox.Show("Please specify a value for N.", World.Instance.Bodies.ToString()), out n);
+            World.Instance.Bodies = n;
         }
 
         private void PauseClick(Object sender, EventArgs e) {
