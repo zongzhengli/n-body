@@ -56,8 +56,8 @@ namespace NBody {
 
         private void ChangeNClick(Object sender, EventArgs e) {
             Int32 n;
-            Int32.TryParse(InputBox.Show("Please specify a value for N.", World.Instance.Bodies.Length.ToString()), out n);
-            World.Instance.Bodies = World.Instance.Bodies.Length != n ? new Body[n] : World.Instance.Bodies;
+            Int32.TryParse(InputBox.Show("Please specify a value for N.", World.Instance.BodiesCount.ToString()), out n);
+            World.Instance.BodiesCount = n;
         }
 
         private void PauseClick(Object sender, EventArgs e) {

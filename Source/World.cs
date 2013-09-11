@@ -30,9 +30,17 @@ namespace NBody {
         }
 
         /// <summary>
-        /// The World instance. 
+        /// The number of Bodes in the simulation. 
         /// </summary>
-        public static World instance = null;
+        public Int32 BodiesCount {
+            get {
+                return Bodies.Length;
+            }
+            set {
+                if (Bodies.Length != value)
+                    Bodies = new Body[value];
+            }
+        }
 
         /// <summary>
         /// The gravitational constant. 
@@ -45,6 +53,26 @@ namespace NBody {
         public static Double C = 1e4;
 
         /// <summary>
+        /// Determines whether the simulation is active or paused. 
+        /// </summary>
+        public Boolean Active = true;
+
+        /// <summary>
+        /// The World instance. 
+        /// </summary>
+        private static World instance = null;
+
+        /// <summary>
+        /// The collection of Bodies in the simulation. 
+        /// </summary>
+        private Body[] Bodies = new Body[1000];
+
+        /// <summary>
+        /// The lock that must be held to modify the Bodies collection. 
+        /// </summary>
+        private readonly Object BodyLock = new Object();
+
+        /// <summary>
         /// The target number of milliseconds between steps in the simulation. 
         /// </summary>
         private const Int32 SimInterval = 33;
@@ -53,21 +81,6 @@ namespace NBody {
         /// The target number of milliseconds between draw frames. 
         /// </summary>
         private const Int32 DrawInterval = 33;
-
-        /// <summary>
-        /// The collection of Bodies in the simulation. 
-        /// </summary>
-        public Body[] Bodies = new Body[1000];
-
-        /// <summary>
-        /// The lock that must be held to modify the Bodies collection. 
-        /// </summary>
-        private readonly Object BodyLock = new Object();
-
-        /// <summary>
-        /// Determines whether the simulation is active or paused. 
-        /// </summary>
-        public Boolean Active = true;
 
         /// <summary>
         /// The camera field of view. 
@@ -501,7 +514,7 @@ namespace NBody {
         /// </summary>
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The mouse event.</param>
-        void MouseWheelEvent(Object sender, MouseEventArgs e) {
+        private void MouseWheelEvent(Object sender, MouseEventArgs e) {
             CameraZVelocity += e.Delta * CameraZAcceleration;
         }
     }
