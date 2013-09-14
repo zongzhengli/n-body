@@ -231,7 +231,7 @@ namespace NBody {
                 // Sleep for the necessary time. 
                 int elapsed = (int)_simStopwatch.ElapsedMilliseconds;
                 if (elapsed < SimInterval)
-                    Thread.Sleep(SimInterval);
+                    Thread.Sleep(SimInterval - elapsed);
 
                 // Update the simluation FPS counter.
                 _simStopwatch.Stop();
