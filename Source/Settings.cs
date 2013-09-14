@@ -47,16 +47,16 @@ namespace NBody {
         }
 
         private void ChangeGClick(Object sender, EventArgs e) {
-            Double.TryParse(InputBox.Show("Please specify a value for G.", World.G.ToString()), out World.G);
+            double.TryParse(InputBox.Show("Please specify a value for G.", World.G.ToString()), out World.G);
         }
 
         private void ChangeCClick(Object sender, EventArgs e) {
-            Double.TryParse(InputBox.Show("Please specify a value for C.", World.C.ToString()), out World.C);
+            double.TryParse(InputBox.Show("Please specify a value for C.", World.C.ToString()), out World.C);
         }
 
         private void ChangeNClick(Object sender, EventArgs e) {
-            Int32 n;
-            Int32.TryParse(InputBox.Show("Please specify a value for N.", World.Instance.Bodies.ToString()), out n);
+            int n;
+            int.TryParse(InputBox.Show("Please specify a value for N.", World.Instance.Bodies.ToString()), out n);
             World.Instance.Bodies = n;
         }
 

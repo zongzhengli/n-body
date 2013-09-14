@@ -14,7 +14,7 @@ namespace NBody {
         /// </summary>
         /// <param name="mass">The mass to calculate a radius for.</param>
         /// <returns>The radius defined for the given mass value.</returns>
-        public static Double GetRadius(Double mass) {
+        public static double GetRadius(double mass) {
 
             // We assume all Bodies have the same density so volume is directly 
             // proportion to mass. Then we use the inverse of the equation for the 
@@ -41,12 +41,12 @@ namespace NBody {
         /// <summary>
         /// The mass of the Body. 
         /// </summary>
-        public Double Mass;
+        public double Mass;
 
         /// <summary>
         /// The radius of the Body. 
         /// </summary>
-        public Double Radius {
+        public double Radius {
             get {
                 return GetRadius(Mass);
             }
@@ -57,7 +57,7 @@ namespace NBody {
         /// default values of zero. 
         /// </summary>
         /// <param name="mass">The mass of the new Body.</param>
-        public Body(Double mass) {
+        public Body(double mass) {
             Mass = mass;
         }
 
@@ -69,7 +69,7 @@ namespace NBody {
         /// <param name="location">The location of the new Body.</param>
         /// <param name="mass">The mass of the new Body.</param>
         /// <param name="velocity">The velocity of the new Body.</param>
-        public Body(Vector location, Double mass = 1e6, Vector velocity = new Vector())
+        public Body(Vector location, double mass = 1e6, Vector velocity = new Vector())
             : this(mass) {
             Location = location;
             Velocity = velocity;
@@ -80,7 +80,7 @@ namespace NBody {
         /// applied acceleration. This method should be invoked at each time step. 
         /// </summary>
         public void Update() {
-            Double speed = Velocity.Magnitude();
+            double speed = Velocity.Magnitude();
             if (speed > World.C) {
                 Velocity = World.C * Velocity.Unit();
                 speed = World.C;
@@ -93,7 +93,7 @@ namespace NBody {
                 // Apply relativistic velocity addition. 
                 Vector parallelAcc = Vector.Projection(Acceleration, Velocity);
                 Vector orthogonalAcc = Vector.Rejection(Acceleration, Velocity);
-                Double alpha = Math.Sqrt(1 - Math.Pow(speed / World.C, 2));
+                double alpha = Math.Sqrt(1 - Math.Pow(speed / World.C, 2));
                 Velocity = (Velocity + parallelAcc + alpha * orthogonalAcc) / (1 + Vector.Dot(Velocity, Acceleration) / (World.C * World.C));
             }
 
@@ -107,7 +107,7 @@ namespace NBody {
         /// <param name="point">The starting point for the axis of rotation.</param>
         /// <param name="direction">The direction for the axis of rotation</param>
         /// <param name="angle">The angle to rotate by.</param>
-        public void Rotate(Vector point, Vector direction, Double angle) {
+        public void Rotate(Vector point, Vector direction, double angle) {
             Location = Location.Rotate(point, direction, angle);
 
             // To rotate velocity and acceleration we have to adjust for the starting 
