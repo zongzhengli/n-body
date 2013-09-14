@@ -16,25 +16,19 @@ namespace NBody {
         private static readonly int ThreadCount = 2 * Environment.ProcessorCount;
 
         /// <summary>
-        /// The delegate for the body of a Parallel.For loop. 
+        /// Encapsulates a method that takes no parameters and returns no value. 
         /// </summary>
-        /// <param name="i">The index value.</param>
-        public delegate void BodyDelegate(int i);
-
-        /// <summary>
-        /// The delegate for the block execution code for a thread. 
-        /// </summary>
-        public delegate void MethodDelegate();
+        public delegate void Action();
 
         /// <summary>
         /// Performs a parallelized loop that is analogous to the sequential for 
-        /// loop. Parallel.For(start, end, delegate(int i) { ... }) is analogous to 
+        /// loop. Parallel.For(start, end, i => { ... }) is analogous to 
         /// for (int i = start, i &lt; end; i++) { ... }. 
         /// </summary>
         /// <param name="fromInclusive">The inclusive initial index for the loop.</param>
         /// <param name="toExclusive">The exclusive final index for the loop.</param>
         /// <param name="body">The body of the loop.</param>
-        public static void For(int fromInclusive, int toExclusive, BodyDelegate body) {
+        public static void For(int fromInclusive, int toExclusive, Action<int> body) {
             Object indexLock = new Object();
 
             // The step value defines the size of a chunk, which is the number of 
@@ -50,7 +44,7 @@ namespace NBody {
             // threads. 
             int index = fromInclusive;
 
-            MethodDelegate method = delegate {
+            Action work = () => {
                 while (true) {
                     int current;
                     lock (indexLock) {
@@ -67,9 +61,9 @@ namespace NBody {
 
             IAsyncResult[] results = new IAsyncResult[ThreadCount];
             for (int i = 0; i < results.Length; i++)
-                results[i] = method.BeginInvoke(null, null);
+                results[i] = work.BeginInvoke(null, null);
             for (int i = 0; i < results.Length; i++)
-                method.EndInvoke(results[i]);
+                work.EndInvoke(results[i]);
         }
 
         /// <summary>
@@ -82,7 +76,7 @@ namespace NBody {
         /// <param name="source">The collection to loop through.</param>
         /// <param name="action">The body of the loop.</param>
         public static void ForEach<T>(IList<T> source, Action<T> action) {
-            For(0, source.Count, delegate(int i) {
+            For(0, source.Count, i => {
                 action(source[i]);
             });
         }
@@ -93,8 +87,8 @@ namespace NBody {
         /// f1(); f2(); ..., fn();. 
         /// </summary>
         /// <param name="body">The functions to invoke.</param>
-        public static void Invoke(params MethodDelegate[] body) {
-            For(0, body.Length, delegate(int i) {
+        public static void Invoke(params Action[] body) {
+            For(0, body.Length, i => {
                 body[i]();
             });
         }

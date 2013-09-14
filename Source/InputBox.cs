@@ -14,7 +14,7 @@ namespace NBody {
         public InputBox() {
             InitializeComponent();
             Button button = new Button();
-            button.Click += delegate { 
+            button.Click += (sender, e) => {
                 Close();
             };
             CancelButton = button;
