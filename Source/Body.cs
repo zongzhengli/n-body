@@ -5,7 +5,7 @@ using Lattice;
 namespace NBody {
 
     /// <summary>
-    /// The massive body in the simulation. 
+    /// Represents a massive body in the simulation. 
     /// </summary>
     class Body {
 

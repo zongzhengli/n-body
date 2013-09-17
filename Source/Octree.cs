@@ -5,7 +5,7 @@ using Lattice;
 namespace NBody {
 
     /// <summary>
-    /// The tree structure in the Barnes-Hut algorithm. 
+    /// Represents the tree structure in the Barnes-Hut algorithm. 
     /// </summary>
     class Octree {
 

@@ -6,7 +6,7 @@ using System.Windows.Forms;
 namespace NBody {
 
     /// <summary>
-    /// The Settings window that controls the parameters of the simulation. 
+    /// Represents a window that controls the parameters of the simulation. 
     /// </summary>
     public partial class Settings : Form {
 

@@ -4,7 +4,7 @@ using System.Windows.Forms;
 namespace NBody {
 
     /// <summary>
-    /// A dialog box that prompts for text input. 
+    /// Represents a dialog box that prompts for text input. 
     /// </summary>
     partial class InputBox : Form {
 
@@ -52,9 +52,9 @@ namespace NBody {
         /// <param name="defaultInputText">The default text in the the input field.</param>
         /// <returns>The value in the input field if the OK button is pressed, otherwise the default input text.</returns>
         public static String Show(String message, String defaultInputText = "") {
-            using (InputBox a = new InputBox()) {
-                if (a.ShowDialog(message, defaultInputText) == DialogResult.OK)
-                    return a.responseBox.Text;
+            using (InputBox box = new InputBox()) {
+                if (box.ShowDialog(message, defaultInputText) == DialogResult.OK)
+                    return box.responseBox.Text;
                 return defaultInputText;
             }
         }

@@ -5,7 +5,7 @@ using System.Threading;
 namespace NBody {
 
     /// <summary>
-    /// Defines methods for easy parallel execution of code. 
+    /// Provides methods for performing parallel tasks. 
     /// </summary>
     public class Parallel {
 
@@ -22,7 +22,7 @@ namespace NBody {
 
         /// <summary>
         /// Performs a parallelized loop that is analogous to the sequential for 
-        /// loop. Parallel.For(start, end, i => { ... }) is analogous to 
+        /// loop. Parallel.For(start, end, i => { ... }); is analogous to 
         /// for (int i = start, i &lt; end; i++) { ... }. 
         /// </summary>
         /// <param name="fromInclusive">The inclusive initial index for the loop.</param>
@@ -68,7 +68,7 @@ namespace NBody {
 
         /// <summary>
         /// Performs a parallelized loop that is analogous to the sequential foreach 
-        /// loop. ForEach&lt;T&gt;(collection, member => { ... }) is analogous to 
+        /// loop. ForEach&lt;T&gt;(collection, member => { ... }); is analogous to 
         /// foreach (T element in collection) { ... }. The type parameter &lt;T&gt; 
         /// can be omitted. 
         /// </summary>
@@ -83,7 +83,7 @@ namespace NBody {
 
         /// <summary>
         /// Invokes the given parameterless functions in parallel. That is, 
-        /// Parallel.Invoke(f1, f2, ..., fn) is analogous to the statements 
+        /// Parallel.Invoke(f1, f2, ..., fn); is analogous to the statements 
         /// f1(); f2(); ..., fn();. 
         /// </summary>
         /// <param name="body">The functions to invoke.</param>

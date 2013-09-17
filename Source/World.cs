@@ -9,11 +9,13 @@ using Lattice;
 
 namespace NBody {
 
-    // The preset system types that can be generated. 
+    /// <summary>
+    /// Specifies the system type to generate. 
+    /// </summary>
     enum SystemType { None, SlowParticles, FastParticles, MassiveBody, OrbitalSystem, BinarySystem, PlanetarySystem, DistributionTest };
 
     /// <summary>
-    /// The main window of the application and the "world" of the simulation. 
+    /// Represents the main window of the application and the world of the simulation. 
     /// </summary>
     class World : Form {
 
