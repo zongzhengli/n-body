@@ -14,7 +14,7 @@ namespace NBody {
         /// Body is only accelerated when the ratio of the tree's width to the 
         /// distance (from the tree's center of mass to the Body) is less than this.
         /// </summary>
-        private const double Tolerance = .5;
+        private const double Tolerance = 0.5;
 
         /// <summary>
         /// The softening factor for the acceleration equation. This dampens the 
@@ -95,10 +95,11 @@ namespace NBody {
             _bodies++;
             if (_bodies == 1)
                 _firstBody = body;
-            else
+            else {
                 AddToSubtree(body);
-            if (_bodies == 2)
-                AddToSubtree(_firstBody);
+                if (_bodies == 2)
+                    AddToSubtree(_firstBody);
+            }
         }
 
         /// <summary>
@@ -122,12 +123,12 @@ namespace NBody {
                 for (int j = -1; j <= 1; j += 2)
                     for (int k = -1; k <= 1; k += 2) {
                         Vector subtreeLocation = _location + (subtreeWidth / 2) * new Vector(i, j, k);
-                        
+
                         // Determine if the body is contained within the bounds of the subtree under 
                         // consideration. 
                         if (Math.Abs(subtreeLocation.X - body.Location.X) <= subtreeWidth / 2
-                            && Math.Abs(subtreeLocation.Y - body.Location.Y) <= subtreeWidth / 2
-                            && Math.Abs(subtreeLocation.Z - body.Location.Z) <= subtreeWidth / 2) {
+                         && Math.Abs(subtreeLocation.Y - body.Location.Y) <= subtreeWidth / 2
+                         && Math.Abs(subtreeLocation.Z - body.Location.Z) <= subtreeWidth / 2) {
 
                             if (_subtrees[subtreeIndex] == null)
                                 _subtrees[subtreeIndex] = new Octree(subtreeLocation, subtreeWidth);
@@ -146,50 +147,36 @@ namespace NBody {
             double dx = _centerOfMass.X - body.Location.X;
             double dy = _centerOfMass.Y - body.Location.Y;
             double dz = _centerOfMass.Z - body.Location.Z;
+            double dSquared = dx * dx + dy * dy + dz * dz;
 
-            // Case 1. The tree contains only one Body and it isn't the Body to be 
-            //         accelerated. The second condition (optimized for speed) 
-            //         determines if the Body to be accelerated lies outside the bounds 
-            //         of the tree. If it does, it can't be the single Body so we 
+            // Case 1. The tree contains only one Body and the given Body lies outside 
+            //         the bounds of tree. Thus the given Body is not the one in the 
+            //         tree so we can perform the acceleration. 
+            //
+            // Case 2. The width to distance ratio is within the defined Tolerance so 
+            //         we consider the tree to be effectively a single massive body and 
             //         perform the acceleration. 
-            if (_bodies == 1
-                && ((body.Location.X - _location.X) * (body.Location.X - _location.X) * 4 > _width * _width
-                    || (body.Location.Y - _location.Y) * (body.Location.Y - _location.Y) * 4 > _width * _width
-                    || (body.Location.Z - _location.Z) * (body.Location.Z - _location.Z) * 4 > _width * _width))
-                PerformAcceleration(body, dx, dy, dz);
+            if ((_bodies == 1 && (Math.Abs(body.Location.X - _location.X) * 2 > _width
+                               || Math.Abs(body.Location.Y - _location.Y) * 2 > _width
+                               || Math.Abs(body.Location.Z - _location.Z) * 2 > _width))
+             || (_width * _width < Tolerance * Tolerance * dSquared)) {
 
-            // Case 2. The width to distance ratio is within Tolerance, so we perform 
-            //         the acceleration. This condition is an optimized equivalent of 
-            //         Width / (distance) < Tolerance. 
-            else if (_width * _width < Tolerance * Tolerance * (dx * dx + dy * dy + dz * dz))
-                PerformAcceleration(body, dx, dy, dz);
+                // Calculate a normalized acceleration value and multiply it with the 
+                // displacement in each coordinate to get that coordinate's acceleration 
+                // component. 
+                double distance = Math.Sqrt(dSquared + Epsilon * Epsilon);
+                double normAcc = World.G * _totalMass / (distance * distance * distance);
 
-            // Case 3. We can't perform the acceleration, so we try to pass the Body on 
-            //         to the subtrees. 
+                body.Acceleration.X += normAcc * dx;
+                body.Acceleration.Y += normAcc * dy;
+                body.Acceleration.Z += normAcc * dz;
+            }
+
+            // Case 3. More granularity is needed so we give the Body to the subtrees. 
             else if (_subtrees != null)
                 foreach (Octree subtree in _subtrees)
                     if (subtree != null)
                         subtree.Accelerate(body);
-        }
-
-        /// <summary>
-        /// Calculates and applies the appropriate acceleration for a Body.
-        /// </summary>
-        /// <param name="body">The Body to accelerate.</param>
-        /// <param name="dx">The difference between the tree's center of mass and the Body's position in the x axis.</param>
-        /// <param name="dy">The difference between the tree's center of mass and the Body's position in the y axis.</param>
-        /// <param name="dz">The difference between the tree's center of mass and the Body's position in the z axis.</param>
-        private void PerformAcceleration(Body body, double dx, double dy, double dz) {
-
-            // Calculate a normalized acceleration value and multiply it with the 
-            // displacement in each coordinate to get that coordinate's acceleration 
-            // componenet. 
-            double distance = Math.Sqrt(dx * dx + dy * dy + dz * dz + Epsilon * Epsilon);
-            double normAcc = World.G * _totalMass / (distance * distance * distance);
-
-            body.Acceleration.X += normAcc * dx;
-            body.Acceleration.Y += normAcc * dy;
-            body.Acceleration.Z += normAcc * dz;
         }
     }
 }

@@ -80,9 +80,19 @@ namespace NBody {
         private const int SimInterval = 33;
 
         /// <summary>
+        /// The easing coefficient for updating the simulation FPS counter. 
+        /// </summary>
+        private const double SimFpsEasing = 0.2;
+
+        /// <summary>
         /// The target number of milliseconds between draw frames. 
         /// </summary>
         private const int DrawInterval = 33;
+
+        /// <summary>
+        /// The easing coefficient for updating the draw FPS counter. 
+        /// </summary>
+        private const double DrawFpsEasing = 0.2;
 
         /// <summary>
         /// The camera field of view. 
@@ -102,7 +112,7 @@ namespace NBody {
         /// <summary>
         /// The easing factor for camera scrolling. 
         /// </summary>
-        private const double CameraZEasing = .94;
+        private const double CameraZEasing = 0.94;
 
         /// <summary>
         /// The camera's position on the z-axis. 
@@ -237,8 +247,8 @@ namespace NBody {
 
                 // Update the simluation FPS counter.
                 _simStopwatch.Stop();
-                _simFps += (1000D / _simStopwatch.Elapsed.TotalMilliseconds - _simFps) * .2;
-                _simFps = _simFps > 1e7 ? 60 : _simFps;
+                _simFps += (1000D / _simStopwatch.Elapsed.TotalMilliseconds - _simFps) * SimFpsEasing;
+                _simFps = Math.Min(_simFps, 1e7);
                 _simStopwatch.Reset();
                 _simStopwatch.Start();
             }
@@ -296,8 +306,8 @@ namespace NBody {
                                 double m = PseudoRandom.Double(5e5) + 1e5;
                                 double s = Math.Sqrt(_bodies[1].Mass * _bodies[1].Mass * G / ((_bodies[1].Mass + m) * d));
                                 Vector v = Vector.Cross(l, Vector.YAxis).Unit() * s + v1;
-                                l = l.Rotate(0, 0, 0, 1, 1, 1, Math.PI * .1);
-                                v = v.Rotate(0, 0, 0, 1, 1, 1, Math.PI * .1);
+                                l = l.Rotate(0, 0, 0, 1, 1, 1, Math.PI * 0.1);
+                                v = v.Rotate(0, 0, 0, 1, 1, 1, Math.PI * 0.1);
                                 _bodies[i] = new Body(l, m, v);
                             }
                         }
@@ -480,8 +490,8 @@ namespace NBody {
 
                 // Update draw FPS counter. 
                 _drawStopwatch.Stop();
-                _drawFps += (1000D / _drawStopwatch.Elapsed.TotalMilliseconds - _drawFps) * .2;
-                _drawFps = _drawFps > 3e3 ? 60 : _drawFps;
+                _drawFps += (1000D / _drawStopwatch.Elapsed.TotalMilliseconds - _drawFps) * DrawFpsEasing;
+                _drawFps = Math.Min(_drawFps, 1e7);
                 _drawStopwatch.Reset();
                 _drawStopwatch.Start();
             } catch (Exception x) {
