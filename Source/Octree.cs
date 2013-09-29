@@ -29,6 +29,16 @@ namespace NBody {
         private const double MinimumWidth = 1;
 
         /// <summary>
+        /// The number of Bodies in the tree. 
+        /// </summary>
+        public int BodyCount = 0;
+
+        /// <summary>
+        /// The total mass of the Bodies contained in the tree. 
+        /// </summary>
+        public double TotalMass = 0;
+
+        /// <summary>
         /// The collection of subtrees for the tree. 
         /// </summary>
         private Octree[] _subtrees = null;
@@ -47,17 +57,6 @@ namespace NBody {
         /// The location of the center of mass of the Bodies contained in the tree. 
         /// </summary>
         private Vector _centerOfMass = Vector.Zero;
-
-        /// <summary>
-        /// The total mass of the Bodies contained in the tree. 
-        /// </summary>
-        private double _totalMass = 0;
-
-        /// <summary>
-        /// The number of Bodies in the tree. This is used to handle special cases 
-        /// when there are very few Bodies in the tree. 
-        /// </summary>
-        private int _bodies = 0;
 
         /// <summary>
         /// The first Body added to the tree. This is used when the first Body must 
@@ -90,14 +89,14 @@ namespace NBody {
         /// </summary>
         /// <param name="body">The Body to add to the tree.</param>
         public void Add(Body body) {
-            _centerOfMass = (_totalMass * _centerOfMass + body.Mass * body.Location) / (_totalMass + body.Mass);
-            _totalMass += body.Mass;
-            _bodies++;
-            if (_bodies == 1)
+            _centerOfMass = (TotalMass * _centerOfMass + body.Mass * body.Location) / (TotalMass + body.Mass);
+            TotalMass += body.Mass;
+            BodyCount++;
+            if (BodyCount == 1)
                 _firstBody = body;
             else {
                 AddToSubtree(body);
-                if (_bodies == 2)
+                if (BodyCount == 2)
                     AddToSubtree(_firstBody);
             }
         }
@@ -156,7 +155,7 @@ namespace NBody {
             // Case 2. The width to distance ratio is within the defined Tolerance so 
             //         we consider the tree to be effectively a single massive body and 
             //         perform the acceleration. 
-            if ((_bodies == 1 && (Math.Abs(body.Location.X - _location.X) * 2 > _width
+            if ((BodyCount == 1 && (Math.Abs(body.Location.X - _location.X) * 2 > _width
                                || Math.Abs(body.Location.Y - _location.Y) * 2 > _width
                                || Math.Abs(body.Location.Z - _location.Z) * 2 > _width))
              || (_width * _width < Tolerance * Tolerance * dSquared)) {
@@ -165,7 +164,7 @@ namespace NBody {
                 // displacement in each coordinate to get that coordinate's acceleration 
                 // component. 
                 double distance = Math.Sqrt(dSquared + Epsilon * Epsilon);
-                double normAcc = World.G * _totalMass / (distance * distance * distance);
+                double normAcc = World.G * TotalMass / (distance * distance * distance);
 
                 body.Acceleration.X += normAcc * dx;
                 body.Acceleration.Y += normAcc * dy;

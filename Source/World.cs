@@ -6,6 +6,7 @@ using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Windows.Forms;
 using Lattice;
+using Threading;
 
 namespace NBody {
 
@@ -32,16 +33,42 @@ namespace NBody {
         }
 
         /// <summary>
-        /// The number of Bodes in the simulation. 
+        /// The number of Bodies allocated in the simulation. 
         /// </summary>
-        public int Bodies {
+        public int BodyAllocationCount {
             get {
                 return _bodies.Length;
             }
             set {
                 if (_bodies.Length != value)
-                    _bodies = new Body[value];
+                    lock (_bodyLock)
+                        _bodies = new Body[value];
+                Frames = 0;
             }
+        }
+
+        /// <summary>
+        /// The number of Bodies that exist in the simulation. 
+        /// </summary>
+        public int BodyCount {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// The total mass of the Bodies that exist in the simulation. 
+        /// </summary>
+        public double TotalMass {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// The number of frames elapsed in the simulation. 
+        /// </summary>
+        public long Frames {
+            get;
+            private set;
         }
 
         /// <summary>
@@ -57,7 +84,10 @@ namespace NBody {
         /// <summary>
         /// Determines whether the simulation is active or paused. 
         /// </summary>
-        public Boolean Active = true;
+        public Boolean Active {
+            get;
+            set;
+        }
 
         /// <summary>
         /// The World instance. 
@@ -72,7 +102,7 @@ namespace NBody {
         /// <summary>
         /// The lock that must be held to modify the Bodies collection. 
         /// </summary>
-        private readonly Object BodyLock = new Object();
+        private readonly Object _bodyLock = new Object();
 
         /// <summary>
         /// The target number of milliseconds between steps in the simulation. 
@@ -93,6 +123,16 @@ namespace NBody {
         /// The easing coefficient for updating the draw FPS counter. 
         /// </summary>
         private const double DrawFpsEasing = 0.2;
+
+        /// <summary>
+        /// The maximum FPS displayed. 
+        /// </summary>
+        private const double FpsMax = 999.9;
+
+        /// <summary>
+        /// The distance from the right border to draw the info text. 
+        /// </summary>
+        private const int InfoWidth = 180;
 
         /// <summary>
         /// The camera field of view. 
@@ -147,12 +187,12 @@ namespace NBody {
         /// <summary>
         /// The simulation FPS counter. 
         /// </summary>
-        private double _simFps;
+        private double _simFps = 0;
 
         /// <summary>
         /// The drawing FPS counter. 
         /// </summary>
-        private double _drawFps;
+        private double _drawFps = 0;
 
         /// <summary>
         /// The Renderer instance used to draw 3D graphics. 
@@ -184,6 +224,10 @@ namespace NBody {
             MouseWheel += new MouseEventHandler(MouseWheelEvent);
             Paint += new PaintEventHandler(DrawEvent);
 
+            // Set default values. 
+            Active = true;
+            Frames = 0;
+
             // Start draw thread. 
             new Thread(new ThreadStart(() => {
                 while (true) {
@@ -214,7 +258,7 @@ namespace NBody {
         private void Simulate() {
             while (true) {
                 if (Active)
-                    lock (BodyLock) {
+                    lock (_bodyLock) {
 
                         // Determine half the length of the cube containing all the Bodies. 
                         double halfLength = 0;
@@ -238,6 +282,12 @@ namespace NBody {
                             if (body != null)
                                 tree.Accelerate(body);
                         });
+
+                        // Update info properties. 
+                        BodyCount = tree.BodyCount;
+                        TotalMass = tree.TotalMass;
+                        if (BodyCount > 0)
+                            Frames++;
                     }
 
                 // Sleep for the necessary time. 
@@ -247,8 +297,8 @@ namespace NBody {
 
                 // Update the simluation FPS counter.
                 _simStopwatch.Stop();
-                _simFps += (1000D / _simStopwatch.Elapsed.TotalMilliseconds - _simFps) * SimFpsEasing;
-                _simFps = Math.Min(_simFps, 1e7);
+                _simFps += (1000.0 / _simStopwatch.Elapsed.TotalMilliseconds - _simFps) * SimFpsEasing;
+                _simFps = Math.Min(_simFps, FpsMax);
                 _simStopwatch.Reset();
                 _simStopwatch.Start();
             }
@@ -260,8 +310,10 @@ namespace NBody {
         /// <param name="type">The system type to generate.</param>
         public void Generate(SystemType type) {
 
-            // TODO: improve the low quality code in this method.  
-            lock (BodyLock) {
+            // TODO: improve the low quality code in this method. 
+            Frames = 0;
+
+            lock (_bodyLock) {
                 switch (type) {
 
                     case SystemType.None:
@@ -435,7 +487,7 @@ namespace NBody {
         /// <param name="direction">The direction for the axis of rotation</param>
         /// <param name="angle">The angle to rotate by.</param>
         public void Rotate(Vector point, Vector direction, double angle) {
-            lock (BodyLock) {
+            lock (_bodyLock) {
                 Parallel.ForEach(_bodies, body => {
                     if (body != null)
                         body.Rotate(point, direction, angle);
@@ -451,8 +503,7 @@ namespace NBody {
             _cameraZ = Math.Max(1, _cameraZ);
             _cameraZVelocity *= CameraZEasing;
 
-            _renderer.Camera = new Vector(0, 0, _cameraZ);
-            _renderer.Origin = new Point(Width / 2, Height / 2);
+            _renderer.Camera.Z = _cameraZ;
         }
 
         /// <summary>
@@ -474,24 +525,35 @@ namespace NBody {
                 g.InterpolationMode = InterpolationMode.NearestNeighbor;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
 
-                SolidBrush brush = new SolidBrush(Color.White);
-
                 // Draw the Bodies. 
-                for (int i = 0; i < _bodies.Length; i++) {
-                    Body body = _bodies[i];
-                    if (body != null)
-                        _renderer.FillCircle2D(g, brush, body.Location, body.Radius);
+                g.TranslateTransform(Width / 2, Height / 2);
+                using (SolidBrush brush = new SolidBrush(Color.White)) {
+                    for (int i = 0; i < _bodies.Length; i++) {
+                        Body body = _bodies[i];
+                        if (body != null)
+                            _renderer.FillCircle2D(g, brush, body.Location, body.Radius);
+                    }
                 }
+                g.ResetTransform();
 
-                brush = new SolidBrush(Color.FromArgb(50, Color.White));
-                g.DrawString("DRAW FPS: " + Math.Round(_drawFps * 10) / 10D, new Font("Arial", 8), brush, Width - 280, 10);
-                g.DrawString("SIMULATION FPS: " + Math.Round(_simFps * 10) / 10D, new Font("Arial", 8), brush, Width - 170, 10);
-                g.DrawString("ZONG ZHENG LI", new Font("Arial", 8), brush, new Point(Width - 120, Height - 60));
+                // Draw the info text. 
+                using (Font font = new Font("Lucida Console", 8))
+                using (SolidBrush brush = new SolidBrush(Color.FromArgb(50, Color.White))) {
+                    int x = Width - InfoWidth;
+
+                    g.DrawString(String.Format("{0,-13}{1:#0.0}", "Simulation", _simFps), font, brush, x, 10);
+                    g.DrawString(String.Format("{0,-13}{1:#0.0}", "Draw", _drawFps), font, brush, x, 24);
+                    g.DrawString(String.Format("{0,-13}{1}", "Bodies", BodyCount), font, brush, x, 38);
+                    g.DrawString(String.Format("{0,-13}{1:e2}", "Total mass", TotalMass), font, brush, x, 52);
+                    g.DrawString(String.Format("{0,-13}{1}", "Frames", Frames), font, brush, x, 66);
+
+                    g.DrawString("ZONG ZHENG LI", font, brush, x, Height - 60);
+                }
 
                 // Update draw FPS counter. 
                 _drawStopwatch.Stop();
-                _drawFps += (1000D / _drawStopwatch.Elapsed.TotalMilliseconds - _drawFps) * DrawFpsEasing;
-                _drawFps = Math.Min(_drawFps, 1e7);
+                _drawFps += (1000.0 / _drawStopwatch.Elapsed.TotalMilliseconds - _drawFps) * DrawFpsEasing;
+                _drawFps = Math.Min(_drawFps, FpsMax);
                 _drawStopwatch.Reset();
                 _drawStopwatch.Start();
             } catch (Exception x) {
