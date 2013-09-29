@@ -21,7 +21,67 @@ namespace NBody {
     class World : Form {
 
         /// <summary>
-        /// The accessor for the World instance. 
+        /// The target number of milliseconds between steps in the simulation. 
+        /// </summary>
+        private const int SimInterval = 33;
+
+        /// <summary>
+        /// The easing coefficient for updating the simulation FPS counter. 
+        /// </summary>
+        private const double SimFpsEasing = 0.2;
+
+        /// <summary>
+        /// The target number of milliseconds between draw frames. 
+        /// </summary>
+        private const int DrawInterval = 33;
+
+        /// <summary>
+        /// The easing coefficient for updating the draw FPS counter. 
+        /// </summary>
+        private const double DrawFpsEasing = 0.2;
+
+        /// <summary>
+        /// The maximum FPS displayed. 
+        /// </summary>
+        private const double FpsMax = 999.9;
+
+        /// <summary>
+        /// The distance from the right border to draw the info text. 
+        /// </summary>
+        private const int InfoWidth = 180;
+
+        /// <summary>
+        /// The camera field of view. 
+        /// </summary>
+        private const double CameraFOV = 9e8;
+
+        /// <summary>
+        /// The default value for the camera's position on the z-axis. 
+        /// </summary>
+        private const double CameraZDefault = 1e6;
+
+        /// <summary>
+        /// The acceleration constant for camera scrolling. 
+        /// </summary>
+        private const double CameraZAcceleration = -2e-4;
+
+        /// <summary>
+        /// The easing factor for camera scrolling. 
+        /// </summary>
+        private const double CameraZEasing = 0.94;
+
+        /// <summary>
+        /// The gravitational constant. 
+        /// </summary>
+        public static double G = 67;
+
+        /// <summary>
+        /// The maximum speed. 
+        /// </summary>
+        public static double C = 1e4;
+
+        /// <summary>
+        /// The World instance. 
         /// </summary>
         public static World Instance {
             get {
@@ -31,6 +91,7 @@ namespace NBody {
                 return _instance;
             }
         }
+        private static World _instance = null;
 
         /// <summary>
         /// The number of Bodies allocated in the simulation. 
@@ -72,27 +133,12 @@ namespace NBody {
         }
 
         /// <summary>
-        /// The gravitational constant. 
-        /// </summary>
-        public static double G = 67;
-
-        /// <summary>
-        /// The maximum speed. 
-        /// </summary>
-        public static double C = 1e4;
-
-        /// <summary>
         /// Determines whether the simulation is active or paused. 
         /// </summary>
         public Boolean Active {
             get;
             set;
         }
-
-        /// <summary>
-        /// The World instance. 
-        /// </summary>
-        private static World _instance = null;
 
         /// <summary>
         /// The collection of Bodies in the simulation. 
@@ -103,56 +149,6 @@ namespace NBody {
         /// The lock that must be held to modify the Bodies collection. 
         /// </summary>
         private readonly Object _bodyLock = new Object();
-
-        /// <summary>
-        /// The target number of milliseconds between steps in the simulation. 
-        /// </summary>
-        private const int SimInterval = 33;
-
-        /// <summary>
-        /// The easing coefficient for updating the simulation FPS counter. 
-        /// </summary>
-        private const double SimFpsEasing = 0.2;
-
-        /// <summary>
-        /// The target number of milliseconds between draw frames. 
-        /// </summary>
-        private const int DrawInterval = 33;
-
-        /// <summary>
-        /// The easing coefficient for updating the draw FPS counter. 
-        /// </summary>
-        private const double DrawFpsEasing = 0.2;
-
-        /// <summary>
-        /// The maximum FPS displayed. 
-        /// </summary>
-        private const double FpsMax = 999.9;
-
-        /// <summary>
-        /// The distance from the right border to draw the info text. 
-        /// </summary>
-        private const int InfoWidth = 180;
-
-        /// <summary>
-        /// The camera field of view. 
-        /// </summary>
-        private const double CameraFOV = 1e9;
-
-        /// <summary>
-        /// The default value for the camera's position on the z-axis. 
-        /// </summary>
-        private const double CameraZDefault = 1e6;
-
-        /// <summary>
-        /// The acceleration constant for camera scrolling. 
-        /// </summary>
-        private const double CameraZAcceleration = -2e-4;
-
-        /// <summary>
-        /// The easing factor for camera scrolling. 
-        /// </summary>
-        private const double CameraZEasing = 0.94;
 
         /// <summary>
         /// The camera's position on the z-axis. 
@@ -522,7 +518,6 @@ namespace NBody {
         private void DrawEvent(Object sender, PaintEventArgs e) {
             try {
                 Graphics g = e.Graphics;
-                g.InterpolationMode = InterpolationMode.NearestNeighbor;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
 
                 // Draw the Bodies. 
@@ -542,7 +537,7 @@ namespace NBody {
                     int x = Width - InfoWidth;
 
                     g.DrawString(String.Format("{0,-13}{1:#0.0}", "Simulation", _simFps), font, brush, x, 10);
-                    g.DrawString(String.Format("{0,-13}{1:#0.0}", "Draw", _drawFps), font, brush, x, 24);
+                    g.DrawString(String.Format("{0,-13}{1:#0.0}", "Render", _drawFps), font, brush, x, 24);
                     g.DrawString(String.Format("{0,-13}{1}", "Bodies", BodyCount), font, brush, x, 38);
                     g.DrawString(String.Format("{0,-13}{1:e2}", "Total mass", TotalMass), font, brush, x, 52);
                     g.DrawString(String.Format("{0,-13}{1}", "Frames", Frames), font, brush, x, 66);
