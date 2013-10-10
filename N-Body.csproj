@@ -52,7 +52,7 @@
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>NBody.World</StartupObject>
+    <StartupObject>NBody.MainWindow</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -70,9 +70,10 @@
     <Compile Include="Source\Settings.Designer.cs">
       <DependentUpon>Settings.cs</DependentUpon>
     </Compile>
-    <Compile Include="Source\World.cs">
+    <Compile Include="Source\MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Source\World.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Lattice, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">

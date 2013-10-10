@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Threading;
-using System.Windows.Forms;
 using Lattice;
 using Threading;
 
@@ -16,39 +14,24 @@ namespace NBody {
     enum SystemType { None, SlowParticles, FastParticles, MassiveBody, OrbitalSystem, BinarySystem, PlanetarySystem, DistributionTest };
 
     /// <summary>
-    /// Represents the main window of the application and the world of the simulation. 
+    /// Represents the world of the simulation. 
     /// </summary>
-    class World : Form {
+    class World {
 
         /// <summary>
-        /// The target number of milliseconds between steps in the simulation. 
+        /// The number of milliseconds between simulation frames. 
         /// </summary>
-        private const int SimInterval = 33;
+        private const int FrameInterval = 33;
 
         /// <summary>
-        /// The easing coefficient for updating the simulation FPS counter. 
+        /// The multiplicative factor for easing the simulation FPS. 
         /// </summary>
-        private const double SimFpsEasing = 0.2;
+        private const double FpsEasing = 0.2;
 
         /// <summary>
-        /// The target number of milliseconds between draw frames. 
-        /// </summary>
-        private const int DrawInterval = 33;
-
-        /// <summary>
-        /// The easing coefficient for updating the draw FPS counter. 
-        /// </summary>
-        private const double DrawFpsEasing = 0.2;
-
-        /// <summary>
-        /// The maximum FPS displayed. 
+        /// The maximum FPS. 
         /// </summary>
         private const double FpsMax = 999.9;
-
-        /// <summary>
-        /// The distance from the right border to draw the info text. 
-        /// </summary>
-        private const int InfoWidth = 180;
 
         /// <summary>
         /// The camera field of view. 
@@ -81,7 +64,7 @@ namespace NBody {
         public static double C = 1e4;
 
         /// <summary>
-        /// The World instance. 
+        /// The world instance. 
         /// </summary>
         public static World Instance {
             get {
@@ -101,10 +84,11 @@ namespace NBody {
                 return _bodies.Length;
             }
             set {
-                if (_bodies.Length != value)
+                if (_bodies.Length != value) {
                     lock (_bodyLock)
                         _bodies = new Body[value];
-                Frames = 0;
+                    Frames = 0;
+                }
             }
         }
 
@@ -141,6 +125,14 @@ namespace NBody {
         }
 
         /// <summary>
+        /// The simulation FPS. 
+        /// </summary>
+        public double Fps {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// The collection of Bodies in the simulation. 
         /// </summary>
         private Body[] _bodies = new Body[1000];
@@ -149,6 +141,16 @@ namespace NBody {
         /// The lock that must be held to modify the Bodies collection. 
         /// </summary>
         private readonly Object _bodyLock = new Object();
+
+        /// <summary>
+        /// The Renderer instance used to draw 3D graphics. 
+        /// </summary>
+        private Renderer _renderer = new Renderer();
+
+        /// <summary>
+        /// The stopwatch for the simulation FPS. 
+        /// </summary>
+        private Stopwatch _stopwatch = new Stopwatch();
 
         /// <summary>
         /// The camera's position on the z-axis. 
@@ -161,143 +163,79 @@ namespace NBody {
         private double _cameraZVelocity = 0;
 
         /// <summary>
-        /// Gives the current location of the mouse. 
+        /// Constructs the world and starts the simulation. 
         /// </summary>
-        private Point _mouseLocation = new Point();
+        private World() {
 
-        /// <summary>
-        /// Gives whether a mouse button is pressed down. 
-        /// </summary>
-        private Boolean _mouseIsDown = false;
-
-        /// <summary>
-        /// The stopwatch for the simulation FPS counter. 
-        /// </summary>
-        private Stopwatch _simStopwatch = new Stopwatch();
-
-        /// <summary>
-        /// The stopwatch for the drawing FPS counter. 
-        /// </summary>
-        private Stopwatch _drawStopwatch = new Stopwatch();
-
-        /// <summary>
-        /// The simulation FPS counter. 
-        /// </summary>
-        private double _simFps = 0;
-
-        /// <summary>
-        /// The drawing FPS counter. 
-        /// </summary>
-        private double _drawFps = 0;
-
-        /// <summary>
-        /// The Renderer instance used to draw 3D graphics. 
-        /// </summary>
-        private Renderer _renderer = new Renderer();
-
-        [STAThread]
-        static void Main() {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(World.Instance);
-        }
-
-        /// <summary>
-        /// Constructs a World by initializing window properties, starting draw and 
-        /// simulation threads, and displaying the Settings window. 
-        /// </summary>
-        public World() {
-
-            // Initialize window settings and event handlers. 
-            ClientSize = new Size(1000, 500);
-            Text = "N-Body";
-            DoubleBuffered = true;
-            BackColor = Color.Black;
-
-            MouseDown += new MouseEventHandler(MouseDownEvent);
-            MouseUp += new MouseEventHandler(MouseUpEvent);
-            MouseMove += new MouseEventHandler(MouseMoveEvent);
-            MouseWheel += new MouseEventHandler(MouseWheelEvent);
-            Paint += new PaintEventHandler(DrawEvent);
-
-            // Set default values. 
+            // Initialize default values. 
             Active = true;
             Frames = 0;
+            _renderer.Camera.Z = _cameraZ;
+            _renderer.FOV = CameraFOV;
 
-            // Start draw thread. 
+            // Start simulation thread. 
             new Thread(new ThreadStart(() => {
-                while (true) {
-                    UpdateCamera();
-                    Invalidate();
-                    Thread.Sleep(DrawInterval);
-                }
+                while (true)
+                    Simulate();
             })) {
                 IsBackground = true
             }.Start();
-
-            // Start simulation thread. 
-            new Thread(new ThreadStart(Simulate)) {
-                IsBackground = true
-            }.Start();
-
-            // Center the window and display the Settings window.
-            CenterToScreen();
-            new Settings().Show();
-
-            // Initialize the camera field of view. 
-            _renderer.FOV = CameraFOV;
         }
 
         /// <summary>
-        /// Performs the simulation. 
+        /// Computes one frame in the simulation if active. 
         /// </summary>
         private void Simulate() {
-            while (true) {
-                if (Active)
-                    lock (_bodyLock) {
+            if (Active)
+                lock (_bodyLock) {
 
-                        // Determine half the length of the cube containing all the Bodies. 
-                        double halfLength = 0;
-                        foreach (Body body in _bodies)
-                            if (body != null) {
-                                body.Update();
-                                halfLength = Math.Max(Math.Abs(body.Location.X), halfLength);
-                                halfLength = Math.Max(Math.Abs(body.Location.Y), halfLength);
-                                halfLength = Math.Max(Math.Abs(body.Location.Z), halfLength);
-                            }
+                    // Determine half the length of the cube containing all the Bodies. 
+                    double halfLength = 0;
+                    foreach (Body body in _bodies)
+                        if (body != null) {
+                            body.Update();
+                            halfLength = Math.Max(Math.Abs(body.Location.X), halfLength);
+                            halfLength = Math.Max(Math.Abs(body.Location.Y), halfLength);
+                            halfLength = Math.Max(Math.Abs(body.Location.Z), halfLength);
+                        }
 
-                        // Initialize the root tree and add the Bodies. The root tree needs to be 
-                        // slightly larger than twice the determined half length. 
-                        Octree tree = new Octree(2.1 * halfLength);
-                        foreach (Body body in _bodies)
-                            if (body != null)
-                                tree.Add(body);
+                    // Initialize the root tree and add the Bodies. The root tree needs to be 
+                    // slightly larger than twice the determined half length. 
+                    Octree tree = new Octree(2.1 * halfLength);
+                    foreach (Body body in _bodies)
+                        if (body != null)
+                            tree.Add(body);
 
-                        // Accelerate the bodies in parallel. 
-                        Parallel.ForEach(_bodies, body => {
-                            if (body != null)
-                                tree.Accelerate(body);
-                        });
+                    // Accelerate the bodies in parallel. 
+                    Parallel.ForEach(_bodies, body => {
+                        if (body != null)
+                            tree.Accelerate(body);
+                    });
 
-                        // Update info properties. 
-                        BodyCount = tree.BodyCount;
-                        TotalMass = tree.TotalMass;
-                        if (BodyCount > 0)
-                            Frames++;
-                    }
+                    // Update info properties. 
+                    BodyCount = tree.BodyCount;
+                    TotalMass = tree.TotalMass;
+                    if (BodyCount > 0)
+                        Frames++;
+                }
 
-                // Sleep for the necessary time. 
-                int elapsed = (int)_simStopwatch.ElapsedMilliseconds;
-                if (elapsed < SimInterval)
-                    Thread.Sleep(SimInterval - elapsed);
+            // Update the camera. 
+            _cameraZ += _cameraZVelocity * _cameraZ;
+            _cameraZ = Math.Max(1, _cameraZ);
+            _cameraZVelocity *= CameraZEasing;
+            _renderer.Camera.Z = _cameraZ;
 
-                // Update the simluation FPS counter.
-                _simStopwatch.Stop();
-                _simFps += (1000.0 / _simStopwatch.Elapsed.TotalMilliseconds - _simFps) * SimFpsEasing;
-                _simFps = Math.Min(_simFps, FpsMax);
-                _simStopwatch.Reset();
-                _simStopwatch.Start();
-            }
+            // Sleep for the necessary time. 
+            int elapsed = (int)_stopwatch.ElapsedMilliseconds;
+            if (elapsed < FrameInterval)
+                Thread.Sleep(FrameInterval - elapsed);
+
+            // Update the simulation FPS.
+            _stopwatch.Stop();
+            Fps += (1000.0 / _stopwatch.Elapsed.TotalMilliseconds - Fps) * FpsEasing;
+            Fps = Math.Min(Fps, FpsMax);
+            _stopwatch.Reset();
+            _stopwatch.Start();
         }
 
         /// <summary>
@@ -492,18 +430,15 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Updates the camera properties to allow movement through the z axis. 
+        /// Moves the camera in association with the given mouse wheel delta. 
         /// </summary>
-        private void UpdateCamera() {
-            _cameraZ += _cameraZVelocity * _cameraZ;
-            _cameraZ = Math.Max(1, _cameraZ);
-            _cameraZVelocity *= CameraZEasing;
-
-            _renderer.Camera.Z = _cameraZ;
+        /// <param name="delta">The signed number of dents the mouse wheel moved.</param>
+        public void MoveCamera(int delta) {
+            _cameraZVelocity += delta * CameraZAcceleration;
         }
 
         /// <summary>
-        /// Resets the camera to its initial state. 
+        /// Resets the camera to its initial position. 
         /// </summary>
         public void ResetCamera() {
             _cameraZ = CameraZDefault;
@@ -511,88 +446,17 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Draws the simulation. 
+        /// Draws the bodies in the world. 
         /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">The event arguments.</param>
-        private void DrawEvent(Object sender, PaintEventArgs e) {
-            try {
-                Graphics g = e.Graphics;
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-
-                // Draw the Bodies. 
-                g.TranslateTransform(Width / 2, Height / 2);
-                using (SolidBrush brush = new SolidBrush(Color.White)) {
-                    for (int i = 0; i < _bodies.Length; i++) {
+        /// <param name="g">The graphics surface to draw on.</param>
+        public void Draw(Graphics g) {
+            using (SolidBrush brush = new SolidBrush(Color.White)) {
+                for (int i = 0; i < _bodies.Length; i++)
+                    if (_bodies[i] != null) {
                         Body body = _bodies[i];
-                        if (body != null)
-                            _renderer.FillCircle2D(g, brush, body.Location, body.Radius);
+                        _renderer.FillCircle2D(g, brush, body.Location, body.Radius);
                     }
-                }
-                g.ResetTransform();
-
-                // Draw the info text. 
-                using (Font font = new Font("Lucida Console", 8))
-                using (SolidBrush brush = new SolidBrush(Color.FromArgb(50, Color.White))) {
-                    int x = Width - InfoWidth;
-
-                    g.DrawString(String.Format("{0,-13}{1:#0.0}", "Simulation", _simFps), font, brush, x, 10);
-                    g.DrawString(String.Format("{0,-13}{1:#0.0}", "Render", _drawFps), font, brush, x, 24);
-                    g.DrawString(String.Format("{0,-13}{1}", "Bodies", BodyCount), font, brush, x, 38);
-                    g.DrawString(String.Format("{0,-13}{1:e2}", "Total mass", TotalMass), font, brush, x, 52);
-                    g.DrawString(String.Format("{0,-13}{1}", "Frames", Frames), font, brush, x, 66);
-
-                    g.DrawString("ZONG ZHENG LI", font, brush, x, Height - 60);
-                }
-
-                // Update draw FPS counter. 
-                _drawStopwatch.Stop();
-                _drawFps += (1000.0 / _drawStopwatch.Elapsed.TotalMilliseconds - _drawFps) * DrawFpsEasing;
-                _drawFps = Math.Min(_drawFps, FpsMax);
-                _drawStopwatch.Reset();
-                _drawStopwatch.Start();
-            } catch (Exception x) {
-                Console.WriteLine(x);
             }
-        }
-
-        /// <summary>
-        /// Invoked when a mouse button is pressed down. 
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">The mouse event.</param>
-        private void MouseDownEvent(Object sender, MouseEventArgs e) {
-            _mouseIsDown = true;
-        }
-
-        /// <summary>
-        /// Invoked when a mouse button is lifted up. 
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">The mouse event.</param>
-        private void MouseUpEvent(Object sender, MouseEventArgs e) {
-            _mouseIsDown = false;
-        }
-
-        /// <summary>
-        /// Invoked when the mouse cursor is moved. 
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">The mouse event.</param>
-        private void MouseMoveEvent(Object sender, MouseEventArgs e) {
-            if (_mouseIsDown)
-                RotationHelper.MouseDrag(Rotate, e.X - _mouseLocation.X, e.Y - _mouseLocation.Y);
-            _mouseLocation.X = e.X;
-            _mouseLocation.Y = e.Y;
-        }
-
-        /// <summary>
-        /// Invoked when the mouse wheel is scrolled. 
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">The mouse event.</param>
-        private void MouseWheelEvent(Object sender, MouseEventArgs e) {
-            _cameraZVelocity += e.Delta * CameraZAcceleration;
         }
     }
 }
