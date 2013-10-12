@@ -16,7 +16,7 @@ namespace NBody {
         /// <returns>The radius defined for the given mass value.</returns>
         public static double GetRadius(double mass) {
 
-            // We assume all Bodies have the same density so volume is directly 
+            // We assume all bodies have the same density so volume is directly 
             // proportion to mass. Then we use the inverse of the equation for the 
             // volume of a sphere to solve for the radius. The end result is arbitrarily 
             // scaled and added to a constant so the Body is generally visible. 
@@ -24,27 +24,28 @@ namespace NBody {
         }
 
         /// <summary>
-        /// The location of the Body. 
+        /// The spatial location of the body. 
         /// </summary>
         public Vector Location = Vector.Zero;
 
         /// <summary>
-        /// The velocity of the Body. 
+        /// The velocity of the body. 
         /// </summary>
         public Vector Velocity = Vector.Zero;
 
         /// <summary>
-        /// The acceleration applied to the Body during a single simulation step. 
+        /// The acceleration accumulated for the body during a single simulation 
+        /// step. 
         /// </summary>
         public Vector Acceleration = Vector.Zero;
 
         /// <summary>
-        /// The mass of the Body. 
+        /// The mass of the body. 
         /// </summary>
         public double Mass;
 
         /// <summary>
-        /// The radius of the Body. 
+        /// The radius of the body. 
         /// </summary>
         public double Radius {
             get {
@@ -53,22 +54,22 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Constructs a Body with the given mass. All other properties are assigned 
+        /// Constructs a body with the given mass. All other properties are assigned 
         /// default values of zero. 
         /// </summary>
-        /// <param name="mass">The mass of the new Body.</param>
+        /// <param name="mass">The mass of the new body.</param>
         public Body(double mass) {
             Mass = mass;
         }
 
         /// <summary>
-        /// Initializes a Body with the given location, mass, and velocity. 
+        /// Constructs a body with the given location, mass, and velocity. 
         /// Unspecified properties are assigned default values of zero except for
-        /// mass, which is given a value of 1e6.
+        /// mass, which is given the value 1e6.
         /// </summary>
-        /// <param name="location">The location of the new Body.</param>
-        /// <param name="mass">The mass of the new Body.</param>
-        /// <param name="velocity">The velocity of the new Body.</param>
+        /// <param name="location">The location of the new body.</param>
+        /// <param name="mass">The mass of the new body.</param>
+        /// <param name="velocity">The velocity of the new body.</param>
         public Body(Vector location, double mass = 1e6, Vector velocity = new Vector())
             : this(mass) {
             Location = location;

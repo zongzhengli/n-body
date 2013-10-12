@@ -76,7 +76,7 @@ namespace NBody {
         private static World _instance = null;
 
         /// <summary>
-        /// The number of Bodies allocated in the simulation. 
+        /// The number of bodies allocated in the simulation. 
         /// </summary>
         public int BodyAllocationCount {
             get {
@@ -92,7 +92,7 @@ namespace NBody {
         }
 
         /// <summary>
-        /// The number of Bodies that exist in the simulation. 
+        /// The number of bodies that exist in the simulation. 
         /// </summary>
         public int BodyCount {
             get;
@@ -100,7 +100,7 @@ namespace NBody {
         }
 
         /// <summary>
-        /// The total mass of the Bodies that exist in the simulation. 
+        /// The total mass of the bodies that exist in the simulation. 
         /// </summary>
         public double TotalMass {
             get;
@@ -132,12 +132,12 @@ namespace NBody {
         }
 
         /// <summary>
-        /// The collection of Bodies in the simulation. 
+        /// The collection of bodies in the simulation. 
         /// </summary>
         private Body[] _bodies = new Body[1000];
 
         /// <summary>
-        /// The lock that must be held to modify the Bodies collection. 
+        /// The lock that must be held to modify the bodies collection. 
         /// </summary>
         private readonly Object _bodyLock = new Object();
 
@@ -188,7 +188,7 @@ namespace NBody {
             if (Active)
                 lock (_bodyLock) {
 
-                    // Determine half the length of the cube containing all the Bodies. 
+                    // Determine half the length of the cube containing all the bodies. 
                     double halfLength = 0;
                     foreach (Body body in _bodies)
                         if (body != null) {
@@ -198,7 +198,7 @@ namespace NBody {
                             halfLength = Math.Max(Math.Abs(body.Location.Z), halfLength);
                         }
 
-                    // Initialize the root tree and add the Bodies. The root tree needs to be 
+                    // Initialize the root tree and add the bodies. The root tree needs to be 
                     // slightly larger than twice the determined half length. 
                     Octree tree = new Octree(2.1 * halfLength);
                     foreach (Body body in _bodies)
@@ -213,7 +213,7 @@ namespace NBody {
 
                     // Update info properties. 
                     BodyCount = tree.BodyCount;
-                    TotalMass = tree.TotalMass;
+                    TotalMass = tree.Mass;
                     if (BodyCount > 0)
                         Frames++;
                 }
@@ -243,7 +243,7 @@ namespace NBody {
         /// <param name="type">The system type to generate.</param>
         public void Generate(SystemType type) {
 
-            // TODO: improve the low quality code in this method. 
+            // Reset frames elapsed. 
             Frames = 0;
 
             lock (_bodyLock) {
@@ -414,7 +414,7 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Rotates the world by calling the Bodies' rotate methods. 
+        /// Rotates the world by calling the bodies' rotate methods. 
         /// </summary>
         /// <param name="point">The starting point for the axis of rotation.</param>
         /// <param name="direction">The direction for the axis of rotation</param>
