@@ -80,11 +80,11 @@ namespace NBody {
             DoubleBuffered = true;
             BackColor = Color.Black;
 
-            MouseDown += new MouseEventHandler(MouseDownEvent);
-            MouseUp += new MouseEventHandler(MouseUpEvent);
-            MouseMove += new MouseEventHandler(MouseMoveEvent);
-            MouseWheel += new MouseEventHandler(MouseWheelEvent);
-            Paint += new PaintEventHandler(DrawEvent);
+            MouseDown += MouseDownHandler;
+            MouseUp += MouseUpHandler;
+            MouseMove += MouseMoveHandler;
+            MouseWheel += MouseWheelHandler;
+            Paint += DrawHandler;
 
             // Start draw thread. 
             new Thread(new ThreadStart(() => {
@@ -106,7 +106,7 @@ namespace NBody {
         /// </summary>
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The event arguments.</param>
-        private void DrawEvent(Object sender, PaintEventArgs e) {
+        private void DrawHandler(Object sender, PaintEventArgs e) {
             try {
                 Graphics g = e.Graphics;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
@@ -147,7 +147,7 @@ namespace NBody {
         /// </summary>
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The mouse event.</param>
-        private void MouseDownEvent(Object sender, MouseEventArgs e) {
+        private void MouseDownHandler(Object sender, MouseEventArgs e) {
             _mouseIsDown = true;
         }
 
@@ -156,7 +156,7 @@ namespace NBody {
         /// </summary>
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The mouse event.</param>
-        private void MouseUpEvent(Object sender, MouseEventArgs e) {
+        private void MouseUpHandler(Object sender, MouseEventArgs e) {
             _mouseIsDown = false;
         }
 
@@ -165,7 +165,7 @@ namespace NBody {
         /// </summary>
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The mouse event.</param>
-        private void MouseMoveEvent(Object sender, MouseEventArgs e) {
+        private void MouseMoveHandler(Object sender, MouseEventArgs e) {
             if (_mouseIsDown)
                 RotationHelper.MouseDrag(_world.Rotate, e.X - _mouseLocation.X, e.Y - _mouseLocation.Y);
             _mouseLocation = e.Location;
@@ -176,8 +176,7 @@ namespace NBody {
         /// </summary>
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The mouse event.</param>
-        private void MouseWheelEvent(Object sender, MouseEventArgs e) {
-            _world.MoveCamera(e.Delta);
+        private void MouseWheelHandler(Object sender, MouseEventArgs e) {
         }
     }
 }
