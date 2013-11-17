@@ -52,7 +52,7 @@
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>NBody.MainWindow</StartupObject>
+    <StartupObject>NBody.Window</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -70,7 +70,7 @@
     <Compile Include="Source\Settings.Designer.cs">
       <DependentUpon>Settings.cs</DependentUpon>
     </Compile>
-    <Compile Include="Source\MainWindow.cs">
+    <Compile Include="Source\Window.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Source\World.cs" />

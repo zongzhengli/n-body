@@ -11,7 +11,7 @@ namespace NBody {
     /// <summary>
     /// Represents the main window for the application. 
     /// </summary>
-    class MainWindow : Form {
+    class Window : Form {
 
         /// <summary>
         /// The number of milliseconds between draw frames. 
@@ -65,14 +65,14 @@ namespace NBody {
         static void Main() {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainWindow());
+            Application.Run(new Window());
         }
 
         /// <summary>
         /// Constructs the main window, starts drawing, and shows the settings 
         /// window. 
         /// </summary>
-        public MainWindow() {
+        public Window() {
 
             // Initialize window settings and event handlers. 
             ClientSize = new Size(1000, 500);
