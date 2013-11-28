@@ -177,6 +177,7 @@ namespace NBody {
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The mouse event.</param>
         private void MouseWheelHandler(Object sender, MouseEventArgs e) {
+            _world.MoveCamera(e.Delta);
         }
     }
 }

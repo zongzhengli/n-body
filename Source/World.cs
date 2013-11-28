@@ -182,25 +182,25 @@ namespace NBody {
         }
 
         /// <summary>
-        /// Computes one frame in the simulation if active. 
+        /// Advances the simulation by one frame if it is active. 
         /// </summary>
         private void Simulate() {
             if (Active)
                 lock (_bodyLock) {
 
-                    // Determine half the length of the cube containing all the bodies. 
-                    double halfLength = 0;
+                    // Update the bodies and determine the required tree width. 
+                    double halfWidth = 0;
                     foreach (Body body in _bodies)
                         if (body != null) {
                             body.Update();
-                            halfLength = Math.Max(Math.Abs(body.Location.X), halfLength);
-                            halfLength = Math.Max(Math.Abs(body.Location.Y), halfLength);
-                            halfLength = Math.Max(Math.Abs(body.Location.Z), halfLength);
+                            halfWidth = Math.Max(Math.Abs(body.Location.X), halfWidth);
+                            halfWidth = Math.Max(Math.Abs(body.Location.Y), halfWidth);
+                            halfWidth = Math.Max(Math.Abs(body.Location.Z), halfWidth);
                         }
 
                     // Initialize the root tree and add the bodies. The root tree needs to be 
-                    // slightly larger than twice the determined half length. 
-                    Octree tree = new Octree(2.1 * halfLength);
+                    // slightly larger than twice the determined half width. 
+                    Octree tree = new Octree(2.1 * halfWidth);
                     foreach (Body body in _bodies)
                         if (body != null)
                             tree.Add(body);
