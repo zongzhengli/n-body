@@ -249,164 +249,176 @@ namespace NBody {
             lock (_bodyLock) {
                 switch (type) {
 
+                    // Clear bodies. 
                     case SystemType.None:
                         Array.Clear(_bodies, 0, _bodies.Length);
                         break;
 
+                    // Generate slow particles. 
                     case SystemType.SlowParticles: {
                             for (int i = 0; i < _bodies.Length; i++) {
-                                double d = PseudoRandom.Double(1e6);
-                                double a = PseudoRandom.Double(Math.PI * 2);
-                                Vector l = new Vector(Math.Cos(a) * d, PseudoRandom.Double(-2e5, 2e5), Math.Sin(a) * d);
-                                double m = PseudoRandom.Double(1e6) + 3e4;
-                                Vector v = PseudoRandom.Vector(5);
-                                _bodies[i] = new Body(l, m, v);
+                                double distance = PseudoRandom.Double(1e6);
+                                double angle    = PseudoRandom.Double(Math.PI * 2);
+                                Vector location = new Vector(Math.Cos(angle) * distance, PseudoRandom.Double(-2e5, 2e5), Math.Sin(angle) * distance);
+                                double mass     = PseudoRandom.Double(1e6) + 3e4;
+                                Vector velocity = PseudoRandom.Vector(5);
+                                _bodies[i] = new Body(location, mass, velocity);
                             }
                         }
                         break;
 
+                    // Generate fast particles. 
                     case SystemType.FastParticles: {
                             for (int i = 0; i < _bodies.Length; i++) {
-                                double d = PseudoRandom.Double(1e6);
-                                double a = PseudoRandom.Double(Math.PI * 2);
-                                Vector l = new Vector(Math.Cos(a) * d, PseudoRandom.Double(-2e5, 2e5), Math.Sin(a) * d);
-                                double m = PseudoRandom.Double(1e6) + 3e4;
-                                Vector v = PseudoRandom.Vector(5e3);
-                                _bodies[i] = new Body(l, m, v);
+                                double distance = PseudoRandom.Double(1e6);
+                                double angle    = PseudoRandom.Double(Math.PI * 2);
+                                Vector location = new Vector(Math.Cos(angle) * distance, PseudoRandom.Double(-2e5, 2e5), Math.Sin(angle) * distance);
+                                double mass     = PseudoRandom.Double(1e6) + 3e4;
+                                Vector velocity = PseudoRandom.Vector(5e3);
+                                _bodies[i] = new Body(location, mass, velocity);
                             }
                         }
                         break;
 
+                    // Generate massive body demonstration. 
                     case SystemType.MassiveBody: {
                             _bodies[0] = new Body(Vector.Zero, 1e10);
-                            Vector l1 = PseudoRandom.Vector(8e3) + new Vector(-3e5, 1e5 + _bodies[0].Radius, 0);
-                            double m1 = 1e6;
-                            Vector v1 = new Vector(2e3, 0, 0);
-                            _bodies[1] = new Body(l1, m1, v1);
+
+                            Vector location1 = PseudoRandom.Vector(8e3) + new Vector(-3e5, 1e5 + _bodies[0].Radius, 0);
+                            double mass1     = 1e6;
+                            Vector velocity1 = new Vector(2e3, 0, 0);
+                            _bodies[1] = new Body(location1, mass1, velocity1);
+
                             for (int i = 2; i < _bodies.Length; i++) {
-                                double d = PseudoRandom.Double(2e5) + _bodies[1].Radius;
-                                double a = PseudoRandom.Double(Math.PI * 2);
-                                double h = Math.Min(2e8 / d, 2e4);
-                                Vector l = (new Vector(Math.Cos(a) * d, PseudoRandom.Double(-h, h), Math.Sin(a) * d) + _bodies[1].Location);
-                                double m = PseudoRandom.Double(5e5) + 1e5;
-                                double s = Math.Sqrt(_bodies[1].Mass * _bodies[1].Mass * G / ((_bodies[1].Mass + m) * d));
-                                Vector v = Vector.Cross(l, Vector.YAxis).Unit() * s + v1;
-                                l = l.Rotate(0, 0, 0, 1, 1, 1, Math.PI * 0.1);
-                                v = v.Rotate(0, 0, 0, 1, 1, 1, Math.PI * 0.1);
-                                _bodies[i] = new Body(l, m, v);
+                                double distance = PseudoRandom.Double(2e5) + _bodies[1].Radius;
+                                double angle    = PseudoRandom.Double(Math.PI * 2);
+                                double vertical = Math.Min(2e8 / distance, 2e4);
+                                Vector location = (new Vector(Math.Cos(angle) * distance, PseudoRandom.Double(-vertical, vertical), Math.Sin(angle) * distance) + _bodies[1].Location);
+                                double mass     = PseudoRandom.Double(5e5) + 1e5;
+                                double speed    = Math.Sqrt(_bodies[1].Mass * _bodies[1].Mass * G / ((_bodies[1].Mass + mass) * distance));
+                                Vector velocity = Vector.Cross(location, Vector.YAxis).Unit() * speed + velocity1;
+                                location = location.Rotate(0, 0, 0, 1, 1, 1, Math.PI * 0.1);
+                                velocity = velocity.Rotate(0, 0, 0, 1, 1, 1, Math.PI * 0.1);
+                                _bodies[i] = new Body(location, mass, velocity);
                             }
                         }
                         break;
 
+                    // Generate orbital system. 
                     case SystemType.OrbitalSystem: {
                             _bodies[0] = new Body(1e10);
+
                             for (int i = 1; i < _bodies.Length; i++) {
-                                double d = PseudoRandom.Double(1e6) + _bodies[0].Radius;
-                                double a = PseudoRandom.Double(Math.PI * 2);
-                                Vector l = new Vector(Math.Cos(a) * d, PseudoRandom.Double(-2e4, 2e4), Math.Sin(a) * d);
-                                double m = PseudoRandom.Double(1e6) + 3e4;
-                                double s = Math.Sqrt(_bodies[0].Mass * _bodies[0].Mass * G / ((_bodies[0].Mass + m) * d));
-                                Vector v = Vector.Cross(l, Vector.YAxis).Unit() * s;
-                                _bodies[i] = new Body(l, m, v);
+                                double distance = PseudoRandom.Double(1e6) + _bodies[0].Radius;
+                                double angle    = PseudoRandom.Double(Math.PI * 2);
+                                Vector location = new Vector(Math.Cos(angle) * distance, PseudoRandom.Double(-2e4, 2e4), Math.Sin(angle) * distance);
+                                double mass     = PseudoRandom.Double(1e6) + 3e4;
+                                double speed    = Math.Sqrt(_bodies[0].Mass * _bodies[0].Mass * G / ((_bodies[0].Mass + mass) * distance));
+                                Vector velocity = Vector.Cross(location, Vector.YAxis).Unit() * speed;
+                                _bodies[i] = new Body(location, mass, velocity);
                             }
                         }
                         break;
 
-                    // TODO: thoroughly clean up the code in this case. 
+                    // Generate binary system. 
                     case SystemType.BinarySystem: {
-                            double m1 = PseudoRandom.Double(9e9) + 1e9;
-                            double m2 = PseudoRandom.Double(9e9) + 1e9;
-                            double d0 = PseudoRandom.Double(1e5) + 3e4;
-                            double a0 = PseudoRandom.Double(Math.PI * 2);
-                            double d1 = d0 / 2;
-                            double d2 = d0 / 2;
-                            Vector l1 = new Vector(Math.Cos(a0) * d1, 0, Math.Sin(a0) * d1);
-                            Vector l2 = new Vector(-Math.Cos(a0) * d2, 0, -Math.Sin(a0) * d2);
-                            double s1 = Math.Sqrt(m2 * m2 * G / ((m1 + m2) * d0));
-                            double s2 = Math.Sqrt(m1 * m1 * G / ((m1 + m2) * d0));
-                            Vector v1 = Vector.Cross(l1, Vector.YAxis).Unit() * s1;
-                            Vector v2 = Vector.Cross(l2, Vector.YAxis).Unit() * s2;
-                            _bodies[0] = new Body(l1, m1, v1);
-                            _bodies[1] = new Body(l2, m2, v2);
+                            double mass1     = PseudoRandom.Double(9e9) + 1e9;
+                            double mass2     = PseudoRandom.Double(9e9) + 1e9;
+                            double angle0    = PseudoRandom.Double(Math.PI * 2);
+                            double distance0 = PseudoRandom.Double(1e5) + 3e4;
+                            double distance1 = distance0 / 2;
+                            double distance2 = distance0 / 2;
+                            Vector location1 = new Vector(Math.Cos(angle0) * distance1, 0, Math.Sin(angle0) * distance1);
+                            Vector location2 = new Vector(-Math.Cos(angle0) * distance2, 0, -Math.Sin(angle0) * distance2);
+                            double speed1    = Math.Sqrt(mass2 * mass2 * G / ((mass1 + mass2) * distance0));
+                            double speed2    = Math.Sqrt(mass1 * mass1 * G / ((mass1 + mass2) * distance0));
+                            Vector velocity1 = Vector.Cross(location1, Vector.YAxis).Unit() * speed1;
+                            Vector velocity2 = Vector.Cross(location2, Vector.YAxis).Unit() * speed2;
+                            _bodies[0] = new Body(location1, mass1, velocity1);
+                            _bodies[1] = new Body(location2, mass2, velocity2);
+
                             for (int i = 2; i < _bodies.Length; i++) {
-                                double d = PseudoRandom.Double(1e6);
-                                double a = PseudoRandom.Double(Math.PI * 2);
-                                Vector l = new Vector(Math.Cos(a) * d, PseudoRandom.Double(-2e4, 2e4), Math.Sin(a) * d);
-                                double m = PseudoRandom.Double(1e6) + 3e4;
-                                double s = Math.Sqrt((m1 + m2) * (m1 + m2) * G / ((m1 + m2 + m) * d));
-                                s = d < d0 / 2 ? s / (d0 / 2 / d) : s;
-                                Vector v = Vector.Cross(l, Vector.YAxis).Unit() * s;
-                                _bodies[i] = new Body(l, m, v);
+                                double distance = PseudoRandom.Double(1e6);
+                                double angle    = PseudoRandom.Double(Math.PI * 2);
+                                Vector location = new Vector(Math.Cos(angle) * distance, PseudoRandom.Double(-2e4, 2e4), Math.Sin(angle) * distance);
+                                double mass     = PseudoRandom.Double(1e6) + 3e4;
+                                double speed    = Math.Sqrt((mass1 + mass2) * (mass1 + mass2) * G / ((mass1 + mass2 + mass) * distance));
+                                speed /= distance >= distance0 / 2 ? 1 :  (distance0 / 2 / distance);
+                                Vector velocity = Vector.Cross(location, Vector.YAxis).Unit() * speed;
+                                _bodies[i] = new Body(location, mass, velocity);
                             }
                         }
                         break;
 
-                    // TODO: thoroughly clean up the code in this case. 
+                    // Generate planetary system. 
                     case SystemType.PlanetarySystem: {
                             _bodies[0] = new Body(1e10);
-                            int pn = PseudoRandom.Int32(10) + 5;
-                            int pr = PseudoRandom.Int32(1) + 1;
+                            int planets = PseudoRandom.Int32(10) + 5;
+                            int planetsWithRings = PseudoRandom.Int32(1) + 1;
                             int k = 1;
-                            for (int i = 1; i < pn + 1 && k < _bodies.Length; i++) {
-                                double d = PseudoRandom.Double(2e6) + 1e5 + _bodies[0].Radius;
-                                double a = PseudoRandom.Double(Math.PI * 2);
-                                Vector l = new Vector(Math.Cos(a) * d, PseudoRandom.Double(-2e4, 2e4), Math.Sin(a) * d);
-                                double m = PseudoRandom.Double(1e8) + 1e7;
-                                double s = Math.Sqrt(_bodies[0].Mass * _bodies[0].Mass * G / ((_bodies[0].Mass + m) * d));
-                                Vector v = Vector.Cross(l, Vector.YAxis).Unit() * s;
-                                int p = k;
-                                _bodies[k++] = new Body(l, m, v);
+                            for (int i = 1; i < planets + 1 && k < _bodies.Length; i++) {
+                                int planetK = k;
+                                double distance = PseudoRandom.Double(2e6) + 1e5 + _bodies[0].Radius;
+                                double angle    = PseudoRandom.Double(Math.PI * 2);
+                                Vector location = new Vector(Math.Cos(angle) * distance, PseudoRandom.Double(-2e4, 2e4), Math.Sin(angle) * distance);
+                                double mass     = PseudoRandom.Double(1e8) + 1e7;
+                                double speed    = Math.Sqrt(_bodies[0].Mass * _bodies[0].Mass * G / ((_bodies[0].Mass + mass) * distance));
+                                Vector velocity = Vector.Cross(location, Vector.YAxis).Unit() * speed;
+                                _bodies[k++] = new Body(location, mass, velocity);
 
                                 // Generate rings.
-                                if (--pr >= 0 && k < _bodies.Length - 100) {
-                                    for (int j = 0; j < 100; j++) {
-                                        double dr = PseudoRandom.Double(1e1) + 1e4 + _bodies[p].Radius;
-                                        double ar = PseudoRandom.Double(Math.PI * 2);
-                                        Vector lr = l + new Vector(Math.Cos(ar) * dr, 0, Math.Sin(ar) * dr);
-                                        double mr = PseudoRandom.Double(1e3) + 1e3;
-                                        double sr = Math.Sqrt(_bodies[p].Mass * _bodies[p].Mass * G / ((_bodies[p].Mass + mr) * dr));
-                                        Vector vr = Vector.Cross(l - lr, Vector.YAxis).Unit() * sr + v;
-                                        _bodies[k++] = new Body(lr, mr, vr);
+                                const int RingParticles = 100;
+                                if (--planetsWithRings >= 0 && k < _bodies.Length - RingParticles) {
+                                    for (int j = 0; j < RingParticles; j++) {
+                                        double ringDistance = PseudoRandom.Double(1e1) + 1e4 + _bodies[planetK].Radius;
+                                        double ringAngle    = PseudoRandom.Double(Math.PI * 2);
+                                        Vector ringLocation = location + new Vector(Math.Cos(ringAngle) * ringDistance, 0, Math.Sin(ringAngle) * ringDistance);
+                                        double ringMass     = PseudoRandom.Double(1e3) + 1e3;
+                                        double ringSpeed    = Math.Sqrt(_bodies[planetK].Mass * _bodies[planetK].Mass * G / ((_bodies[planetK].Mass + ringMass) * ringDistance));
+                                        Vector ringVelocity = Vector.Cross(location - ringLocation, Vector.YAxis).Unit() * ringSpeed + velocity;
+                                        _bodies[k++] = new Body(ringLocation, ringMass, ringVelocity);
                                     }
                                     continue;
                                 }
 
                                 // Generate moons. 
-                                int mn = PseudoRandom.Int32(4);
-                                while (mn-- > 0 && k < _bodies.Length) {
-                                    double dm = PseudoRandom.Double(1e4) + 5e3 + _bodies[p].Radius;
-                                    double am = PseudoRandom.Double(Math.PI * 2);
-                                    Vector lm = l + new Vector(Math.Cos(am) * dm, PseudoRandom.Double(-2e3, 2e3), Math.Sin(am) * dm);
-                                    double mm = PseudoRandom.Double(1e6) + 1e5;
-                                    double sm = Math.Sqrt(_bodies[p].Mass * _bodies[p].Mass * G / ((_bodies[p].Mass + mm) * dm));
-                                    Vector vm = Vector.Cross(lm - l, Vector.YAxis).Unit() * sm + v;
-                                    _bodies[k++] = new Body(lm, mm, vm);
+                                int moons = PseudoRandom.Int32(4);
+                                while (moons-- > 0 && k < _bodies.Length) {
+                                    double moonDistance = PseudoRandom.Double(1e4) + 5e3 + _bodies[planetK].Radius;
+                                    double moonAngle    = PseudoRandom.Double(Math.PI * 2);
+                                    Vector moonLocation = location + new Vector(Math.Cos(moonAngle) * moonDistance, PseudoRandom.Double(-2e3, 2e3), Math.Sin(moonAngle) * moonDistance);
+                                    double moonMass     = PseudoRandom.Double(1e6) + 1e5;
+                                    double moonSpeed    = Math.Sqrt(_bodies[planetK].Mass * _bodies[planetK].Mass * G / ((_bodies[planetK].Mass + moonMass) * moonDistance));
+                                    Vector moonVelocity = Vector.Cross(moonLocation - location, Vector.YAxis).Unit() * moonSpeed + velocity;
+                                    _bodies[k++] = new Body(moonLocation, moonMass, moonVelocity);
                                 }
                             }
 
                             // Generate asteroid belt.
                             while (k < _bodies.Length) {
-                                double db = PseudoRandom.Double(4e5) + 1e6;
-                                double ab = PseudoRandom.Double(Math.PI * 2);
-                                Vector lb = new Vector(Math.Cos(ab) * db, PseudoRandom.Double(-1e3, 1e3), Math.Sin(ab) * db);
-                                double mb = PseudoRandom.Double(1e6) + 3e4;
-                                double sb = Math.Sqrt(_bodies[0].Mass * _bodies[0].Mass * G / ((_bodies[0].Mass + mb) * db));
-                                Vector vb = Vector.Cross(lb, Vector.YAxis).Unit() * sb;
-                                _bodies[k++] = new Body(lb, mb, vb);
+                                double asteroidDistance = PseudoRandom.Double(4e5) + 1e6;
+                                double asteroidAngle    = PseudoRandom.Double(Math.PI * 2);
+                                Vector asteroidLocation = new Vector(Math.Cos(asteroidAngle) * asteroidDistance, PseudoRandom.Double(-1e3, 1e3), Math.Sin(asteroidAngle) * asteroidDistance);
+                                double asteroidMass     = PseudoRandom.Double(1e6) + 3e4;
+                                double asteroidSpeed    = Math.Sqrt(_bodies[0].Mass * _bodies[0].Mass * G / ((_bodies[0].Mass + asteroidMass) * asteroidDistance));
+                                Vector asteroidVelocity = Vector.Cross(asteroidLocation, Vector.YAxis).Unit() * asteroidSpeed;
+                                _bodies[k++] = new Body(asteroidLocation, asteroidMass, asteroidVelocity);
                             }
                         }
                         break;
 
+                    // Generate distribution test. 
                     case SystemType.DistributionTest: {
                             Array.Clear(_bodies, 0, _bodies.Length);
-                            double d = 4e4;
-                            double m = 5e6;
-                            int s = (int)Math.Pow(_bodies.Length, 1 / 3D);
+                            double distance = 4e4;
+                            double mass     = 5e6;
+
+                            int side = (int)Math.Pow(_bodies.Length, 1.0 / 3);
                             int k = 0;
-                            for (int a = 0; a < s; a++)
-                                for (int b = 0; b < s; b++)
-                                    for (int c = 0; c < s; c++)
-                                        _bodies[k++] = new Body(d * (new Vector((a - s / 2), (b - s / 2), (c - s / 2))), m);
+                            for (int a = 0; a < side; a++)
+                                for (int b = 0; b < side; b++)
+                                    for (int c = 0; c < side; c++)
+                                        _bodies[k++] = new Body(distance * (new Vector((a - side / 2), (b - side / 2), (c - side / 2))), mass);
                         }
                         break;
                 }

@@ -95,7 +95,7 @@ namespace NBody {
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The raised event.</param>
         private void ChangeGClick(Object sender, EventArgs e) {
-            double.TryParse(InputBox.Show("Please specify a value for G.", World.G.ToString()), out World.G);
+            Double.TryParse(InputBox.Show("Please specify a value for G.", World.G.ToString()), out World.G);
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace NBody {
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The raised event.</param>
         private void ChangeCClick(Object sender, EventArgs e) {
-            double.TryParse(InputBox.Show("Please specify a value for C.", World.C.ToString()), out World.C);
+            Double.TryParse(InputBox.Show("Please specify a value for C.", World.C.ToString()), out World.C);
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace NBody {
         /// <param name="e">The raised event.</param>
         private void ChangeNClick(Object sender, EventArgs e) {
             int n;
-            int.TryParse(InputBox.Show("Please specify a value for N.", World.Instance.BodyAllocationCount.ToString()), out n);
+            Int32.TryParse(InputBox.Show("Please specify a value for N.", World.Instance.BodyAllocationCount.ToString()), out n);
             World.Instance.BodyAllocationCount = n;
         }
 
