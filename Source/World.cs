@@ -418,7 +418,7 @@ namespace NBody {
                             for (int a = 0; a < side; a++)
                                 for (int b = 0; b < side; b++)
                                     for (int c = 0; c < side; c++)
-                                        _bodies[k++] = new Body(distance * (new Vector((a - side / 2), (b - side / 2), (c - side / 2))), mass);
+                                        _bodies[k++] = new Body(distance * (new Vector(a - side / 2, b - side / 2, c - side / 2)), mass);
                         }
                         break;
                 }
@@ -432,12 +432,11 @@ namespace NBody {
         /// <param name="direction">The direction for the axis of rotation</param>
         /// <param name="angle">The angle to rotate by.</param>
         public void Rotate(Vector point, Vector direction, double angle) {
-            lock (_bodyLock) {
+            lock (_bodyLock) 
                 Parallel.ForEach(_bodies, body => {
                     if (body != null)
                         body.Rotate(point, direction, angle);
                 });
-            }
         }
 
         /// <summary>
@@ -461,13 +460,12 @@ namespace NBody {
         /// </summary>
         /// <param name="g">The graphics surface to draw on.</param>
         public void Draw(Graphics g) {
-            using (SolidBrush brush = new SolidBrush(Color.White)) {
+            using (SolidBrush brush = new SolidBrush(Color.White)) 
                 for (int i = 0; i < _bodies.Length; i++)
                     if (_bodies[i] != null) {
                         Body body = _bodies[i];
                         _renderer.FillCircle2D(g, brush, body.Location, body.Radius);
                     }
-            }
         }
     }
 }

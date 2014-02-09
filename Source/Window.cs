@@ -121,13 +121,13 @@ namespace NBody {
                 using (SolidBrush brush = new SolidBrush(Color.FromArgb(50, Color.White))) {
                     int x = Width - InfoWidth;
 
-                    g.DrawString(String.Format("{0,-13}{1:#0.0}", "Simulation", _world.Fps), font, brush, x, 10);
-                    g.DrawString(String.Format("{0,-13}{1:#0.0}", "Draw", _fps), font, brush, x, 24);
-                    g.DrawString(String.Format("{0,-13}{1}", "Bodies", _world.BodyCount), font, brush, x, 38);
-                    g.DrawString(String.Format("{0,-13}{1:e2}", "Total mass", _world.TotalMass), font, brush, x, 52);
-                    g.DrawString(String.Format("{0,-13}{1}", "Frames", _world.Frames), font, brush, x, 66);
+                    g.DrawString(String.Format("{0,-13}{1:#0.0}", "Simulation", _world.Fps)      , font, brush, x, 10);
+                    g.DrawString(String.Format("{0,-13}{1:#0.0}", "Draw"      , _fps)            , font, brush, x, 24);
+                    g.DrawString(String.Format("{0,-13}{1}"     , "Bodies"    , _world.BodyCount), font, brush, x, 38);
+                    g.DrawString(String.Format("{0,-13}{1:e2}"  , "Total mass", _world.TotalMass), font, brush, x, 52);
+                    g.DrawString(String.Format("{0,-13}{1}"     , "Frames"    , _world.Frames)   , font, brush, x, 66);
 
-                    g.DrawString("ZONG ZHENG LI", font, brush, x, Height - 60);
+                    g.DrawString("ZONG ZHENG LI"                                                 , font, brush, x, Height - 60);
                 }
 
                 // Update draw FPS. 
