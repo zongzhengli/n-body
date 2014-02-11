@@ -73,16 +73,14 @@ namespace NBody {
         /// window. 
         /// </summary>
         public Window() {
+
+            // Initialize window properties and mouse behaviour.  
             InitializeComponent();
+            InitializeMouseEvents();
 
-            // Initialize event handlers. 
-            MouseDown += MouseDownHandler;
-            MouseUp += MouseUpHandler;
-            MouseMove += MouseMoveHandler;
-            MouseWheel += MouseWheelHandler;
-            Paint += DrawHandler;
+            // Initialize drawing.
+            Paint += Draw;
 
-            // Start draw thread. 
             new Thread(new ThreadStart(() => {
                 while (true) {
                     Invalidate();
@@ -110,11 +108,42 @@ namespace NBody {
         }
 
         /// <summary>
+        /// Initializes mouse behaviour. 
+        /// </summary>
+        private void InitializeMouseEvents() {
+
+            // Initialize mouse down behaviour. 
+            MouseDown += (sender, e) => {
+                _mouseIsDown = true;
+            };
+
+            // Initialize mouse up behaviour. 
+            MouseUp += (sender, e) => {
+                _mouseIsDown = false;
+            };
+
+            // Initialize mouse move behaviour. 
+            MouseMove += (sender, e) => {
+                int dx = e.X - _mouseLocation.X;
+                int dy = e.Y - _mouseLocation.Y;
+                _mouseLocation = e.Location;
+
+                if (_mouseIsDown)
+                    RotationHelper.MouseDrag(_world.Rotate, dx, dy);
+            };
+
+            // Initialize mouse wheel behaviour. 
+            MouseWheel += (sender, e) => {
+                _world.MoveCamera(e.Delta); ;
+            };
+        }
+
+        /// <summary>
         /// Draws the simulation. 
         /// </summary>
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The event arguments.</param>
-        private void DrawHandler(Object sender, PaintEventArgs e) {
+        private void Draw(Object sender, PaintEventArgs e) {
             try {
                 Graphics g = e.Graphics;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
@@ -148,44 +177,6 @@ namespace NBody {
             } catch (Exception ex) {
                 Debug.WriteLine(ex);
             }
-        }
-
-        /// <summary>
-        /// Invoked when a mouse button is pressed down. 
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">The mouse event.</param>
-        private void MouseDownHandler(Object sender, MouseEventArgs e) {
-            _mouseIsDown = true;
-        }
-
-        /// <summary>
-        /// Invoked when a mouse button is lifted up. 
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">The mouse event.</param>
-        private void MouseUpHandler(Object sender, MouseEventArgs e) {
-            _mouseIsDown = false;
-        }
-
-        /// <summary>
-        /// Invoked when the mouse cursor is moved. 
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">The mouse event.</param>
-        private void MouseMoveHandler(Object sender, MouseEventArgs e) {
-            if (_mouseIsDown)
-                RotationHelper.MouseDrag(_world.Rotate, e.X - _mouseLocation.X, e.Y - _mouseLocation.Y);
-            _mouseLocation = e.Location;
-        }
-
-        /// <summary>
-        /// Invoked when the mouse wheel is scrolled. 
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">The mouse event.</param>
-        private void MouseWheelHandler(Object sender, MouseEventArgs e) {
-            _world.MoveCamera(e.Delta);
         }
     }
 }
