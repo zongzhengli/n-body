@@ -40,9 +40,9 @@
             this.changeC = new System.Windows.Forms.Button();
             this.parametersLabel = new System.Windows.Forms.Label();
             this.functionsTab = new System.Windows.Forms.TabPage();
+            this.resetCamera = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.pause = new System.Windows.Forms.Button();
-            this.resetCamera = new System.Windows.Forms.Button();
             this.tabControl.SuspendLayout();
             this.systemsTab.SuspendLayout();
             this.parametersTab.SuspendLayout();
@@ -234,6 +234,16 @@
             this.functionsTab.Text = "Functions";
             this.functionsTab.UseVisualStyleBackColor = true;
             // 
+            // resetCamera
+            // 
+            this.resetCamera.Location = new System.Drawing.Point(113, 28);
+            this.resetCamera.Name = "resetCamera";
+            this.resetCamera.Size = new System.Drawing.Size(100, 23);
+            this.resetCamera.TabIndex = 12;
+            this.resetCamera.Text = "Reset Camera";
+            this.resetCamera.UseVisualStyleBackColor = true;
+            this.resetCamera.Click += new System.EventHandler(this.ResetCameraClick);
+            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -252,16 +262,6 @@
             this.pause.Text = "Pause";
             this.pause.UseVisualStyleBackColor = true;
             this.pause.Click += new System.EventHandler(this.PauseClick);
-            // 
-            // resetCamera
-            // 
-            this.resetCamera.Location = new System.Drawing.Point(113, 28);
-            this.resetCamera.Name = "resetCamera";
-            this.resetCamera.Size = new System.Drawing.Size(100, 23);
-            this.resetCamera.TabIndex = 12;
-            this.resetCamera.Text = "Reset Camera";
-            this.resetCamera.UseVisualStyleBackColor = true;
-            this.resetCamera.Click += new System.EventHandler(this.ResetCameraClick);
             // 
             // Settings
             // 

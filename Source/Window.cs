@@ -73,13 +73,9 @@ namespace NBody {
         /// window. 
         /// </summary>
         public Window() {
+            InitializeComponent();
 
-            // Initialize window settings and event handlers. 
-            ClientSize = new Size(1000, 500);
-            Text = "N-Body";
-            DoubleBuffered = true;
-            BackColor = Color.Black;
-
+            // Initialize event handlers. 
             MouseDown += MouseDownHandler;
             MouseUp += MouseUpHandler;
             MouseMove += MouseMoveHandler;
@@ -100,6 +96,18 @@ namespace NBody {
             new Settings().Show();
         }
 
+        /// <summary>
+        /// Initializes the properties of the window. 
+        /// </summary>
+        private void InitializeComponent() {
+            SuspendLayout();
+            BackColor = Color.Black;
+            ClientSize = new Size(984, 461);
+            DoubleBuffered = true;
+            Name = "Window";
+            Text = "N-Body";
+            ResumeLayout(false);
+        }
 
         /// <summary>
         /// Draws the simulation. 
@@ -112,7 +120,7 @@ namespace NBody {
                 g.SmoothingMode = SmoothingMode.AntiAlias;
 
                 // Draw the world. 
-                g.TranslateTransform(Width / 2, Height / 2);
+                g.TranslateTransform(ClientSize.Width / 2, ClientSize.Height / 2);
                 _world.Draw(g);
                 g.ResetTransform();
 
@@ -138,7 +146,7 @@ namespace NBody {
                 _stopwatch.Start();
 
             } catch (Exception ex) {
-                Console.WriteLine(ex);
+                Debug.WriteLine(ex);
             }
         }
 
