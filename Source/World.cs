@@ -95,16 +95,18 @@ namespace NBody {
         /// The number of bodies that exist in the simulation. 
         /// </summary>
         public int BodyCount {
-            get;
-            private set;
+            get {
+                return _tree == null ? 0 : _tree.BodyCount;
+            }
         }
 
         /// <summary>
         /// The total mass of the bodies that exist in the simulation. 
         /// </summary>
         public double TotalMass {
-            get;
-            private set;
+            get {
+                return _tree == null ? 0 : _tree.Mass;
+            }
         }
 
         /// <summary>
@@ -132,17 +134,30 @@ namespace NBody {
         }
 
         /// <summary>
+        /// Determines whether to draw the tree structure for calculating forces. 
+        /// </summary>
+        public Boolean DrawTree {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// The collection of bodies in the simulation. 
         /// </summary>
         private Body[] _bodies = new Body[1000];
 
         /// <summary>
-        /// The lock that must be held to modify the bodies collection. 
+        /// The lock for modifying the bodies collection. 
         /// </summary>
         private readonly Object _bodyLock = new Object();
 
         /// <summary>
-        /// The Renderer instance used to draw 3D graphics. 
+        /// The tree for calculating forces. 
+        /// </summary>
+        private Octree _tree;
+
+        /// <summary>
+        /// The Renderer instance for drawing 3D graphics. 
         /// </summary>
         private Renderer _renderer = new Renderer();
 
@@ -200,21 +215,19 @@ namespace NBody {
 
                     // Initialize the root tree and add the bodies. The root tree needs to be 
                     // slightly larger than twice the determined half width. 
-                    Octree tree = new Octree(2.1 * halfWidth);
+                    _tree = new Octree(2.1 * halfWidth);
                     foreach (Body body in _bodies)
                         if (body != null)
-                            tree.Add(body);
+                            _tree.Add(body);
 
                     // Accelerate the bodies in parallel. 
                     Parallel.ForEach(_bodies, body => {
                         if (body != null)
-                            tree.Accelerate(body);
+                            _tree.Accelerate(body);
                     });
 
-                    // Update info properties. 
-                    BodyCount = tree.BodyCount;
-                    TotalMass = tree.Mass;
-                    if (BodyCount > 0)
+                    // Update frame counter. 
+                    if (_tree.BodyCount > 0)
                         Frames++;
                 }
 
@@ -460,12 +473,14 @@ namespace NBody {
         /// </summary>
         /// <param name="g">The graphics surface to draw on.</param>
         public void Draw(Graphics g) {
-            using (SolidBrush brush = new SolidBrush(Color.White)) 
-                for (int i = 0; i < _bodies.Length; i++)
-                    if (_bodies[i] != null) {
-                        Body body = _bodies[i];
-                        _renderer.FillCircle2D(g, brush, body.Location, body.Radius);
-                    }
+            for (int i = 0; i < _bodies.Length; i++)
+                if (_bodies[i] != null) {
+                    Body body = _bodies[i];
+                    _renderer.FillCircle2D(g, Brushes.White, body.Location, body.Radius);
+                }
+
+            if (DrawTree)
+                _tree.Draw(g, _renderer);
         }
     }
 }

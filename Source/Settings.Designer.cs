@@ -40,6 +40,7 @@
             this.changeC = new System.Windows.Forms.Button();
             this.parametersLabel = new System.Windows.Forms.Label();
             this.functionsTab = new System.Windows.Forms.TabPage();
+            this.showTree = new System.Windows.Forms.Button();
             this.resetCamera = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.pause = new System.Windows.Forms.Button();
@@ -223,6 +224,7 @@
             // 
             // functionsTab
             // 
+            this.functionsTab.Controls.Add(this.showTree);
             this.functionsTab.Controls.Add(this.resetCamera);
             this.functionsTab.Controls.Add(this.label1);
             this.functionsTab.Controls.Add(this.pause);
@@ -233,6 +235,16 @@
             this.functionsTab.TabIndex = 2;
             this.functionsTab.Text = "Functions";
             this.functionsTab.UseVisualStyleBackColor = true;
+            // 
+            // showTree
+            // 
+            this.showTree.Location = new System.Drawing.Point(219, 28);
+            this.showTree.Name = "showTree";
+            this.showTree.Size = new System.Drawing.Size(100, 23);
+            this.showTree.TabIndex = 13;
+            this.showTree.Text = "Show Tree";
+            this.showTree.UseVisualStyleBackColor = true;
+            this.showTree.Click += new System.EventHandler(this.ShowTreeClick);
             // 
             // resetCamera
             // 
@@ -306,5 +318,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button pause;
         private System.Windows.Forms.Button resetCamera;
+        private System.Windows.Forms.Button showTree;
     }
 }

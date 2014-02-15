@@ -124,7 +124,7 @@ namespace NBody {
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The raised event.</param>
         private void PauseClick(Object sender, EventArgs e) {
-            World.Instance.Active = !World.Instance.Active;
+            World.Instance.Active ^= true;
             pause.Text = World.Instance.Active ? "Pause" : "Resume";
         }
 
@@ -135,6 +135,16 @@ namespace NBody {
         /// <param name="e">The raised event.</param>
         private void ResetCameraClick(Object sender, EventArgs e) {
             World.Instance.ResetCamera();
+        }
+
+        /// <summary>
+        /// Handles the Reset Camera button click. 
+        /// </summary>
+        /// <param name="sender">The sender of the event.</param>
+        /// <param name="e">The raised event.</param>
+        private void ShowTreeClick(object sender, EventArgs e) {
+            World.Instance.DrawTree ^= true;
+            showTree.Text = (World.Instance.DrawTree ? "Hide" : "Show") + " Tree";
         }
     }
 }
