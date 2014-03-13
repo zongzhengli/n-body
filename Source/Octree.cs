@@ -146,17 +146,13 @@ namespace NBody {
             double dz = _centerOfMass.Z - body.Location.Z;
             double dSquared = dx * dx + dy * dy + dz * dz;
 
-            // Case 1. The tree contains only one body and the given body lies outside 
-            //         the bounds of tree. Thus the given body is not the one in the 
+            // Case 1. The tree contains only one body and it is not the one in the 
             //         tree so we can perform the acceleration. 
             //
             // Case 2. The width to distance ratio is within the defined tolerance so 
             //         we consider the tree to be effectively a single massive body and 
             //         perform the acceleration. 
-            if ((BodyCount == 1 && (Math.Abs(body.Location.X - _location.X) * 2 > _width
-                               || Math.Abs(body.Location.Y - _location.Y) * 2 > _width
-                               || Math.Abs(body.Location.Z - _location.Z) * 2 > _width))
-             || (_width * _width < Tolerance * Tolerance * dSquared)) {
+            if ((BodyCount == 1 && body != _firstBody) || (_width * _width < Tolerance * Tolerance * dSquared)) {
 
                 // Calculate a normalized acceleration value and multiply it with the 
                 // displacement in each coordinate to get that coordinate's acceleration 
@@ -182,7 +178,6 @@ namespace NBody {
         /// <param name="g">The graphics surface to draw on.</param>
         public void Draw(Graphics g, Renderer renderer) {
             renderer.DrawSquare2D(g, Pens.Red, _location, _width);
-
 
             if (_subtrees != null)
                 foreach (Octree subtree in _subtrees)
