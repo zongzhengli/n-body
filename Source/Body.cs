@@ -10,20 +10,6 @@ namespace NBody {
     class Body {
 
         /// <summary>
-        /// Returns the radius defined for the given mass value. 
-        /// </summary>
-        /// <param name="mass">The mass to calculate a radius for.</param>
-        /// <returns>The radius defined for the given mass value.</returns>
-        public static double GetRadius(double mass) {
-
-            // We assume all bodies have the same density so volume is directly 
-            // proportion to mass. Then we use the inverse of the equation for the 
-            // volume of a sphere to solve for the radius. The end result is arbitrarily 
-            // scaled and added to a constant so the Body is generally visible. 
-            return 10 * Math.Pow(3 * mass / (4 * Math.PI), 1 / 3.0) + 10;
-        }
-
-        /// <summary>
         /// The spatial location of the body. 
         /// </summary>
         public Vector Location = Vector.Zero;
@@ -43,6 +29,16 @@ namespace NBody {
         /// The mass of the body. 
         /// </summary>
         public double Mass;
+
+        /// <summary>
+        /// The previous locations of the body in a circular queue. 
+        /// </summary>
+        private Vector[] _locationHistory = new Vector[20];
+
+        /// <summary>
+        /// The current index in the location history queue. 
+        /// </summary>
+        private int _locationHistoryIndex = 0;
 
         /// <summary>
         /// The radius of the body. 
@@ -74,6 +70,10 @@ namespace NBody {
             : this(mass) {
             Location = location;
             Velocity = velocity;
+
+            for (int i = 0; i < _locationHistory.Length; i++) {
+                _locationHistory[i] = location;
+            }
         }
 
         /// <summary>
@@ -81,6 +81,9 @@ namespace NBody {
         /// applied acceleration. This method should be invoked at each time step. 
         /// </summary>
         public void Update() {
+            _locationHistory[_locationHistoryIndex] = Location;
+            _locationHistoryIndex = ++_locationHistoryIndex % _locationHistory.Length;
+
             double speed = Velocity.Magnitude();
             if (speed > World.C) {
                 Velocity = World.C * Velocity.Unit();
@@ -120,6 +123,66 @@ namespace NBody {
             Acceleration += point;
             Acceleration = Acceleration.Rotate(point, direction, angle);
             Acceleration -= point;
+
+            if (DrawTracers) {
+                for (int i = 0; i < _locationHistory.Length; i++) {
+                    _locationHistory[i] = _locationHistory[i].Rotate(point, direction, angle);
+                }
+            }
         }
+
+        /// <summary>
+        /// Returns the radius defined for the given mass value. 
+        /// </summary>
+        /// <param name="mass">The mass to calculate a radius for.</param>
+        /// <returns>The radius defined for the given mass value.</returns>
+        public static double GetRadius(double mass) {
+
+            // We assume all bodies have the same density so volume is directly 
+            // proportion to mass. Then we use the inverse of the equation for the 
+            // volume of a sphere to solve for the radius. The end result is arbitrarily 
+            // scaled and added to a constant so the Body is generally visible. 
+            return 10 * Math.Pow(3 * mass / (4 * Math.PI), 1 / 3.0) + 10;
+        }
+
+        #region Drawing
+
+        /// <summary>
+        /// The brush to use for drawing the body. 
+        /// </summary>
+        private static Brush DrawingBrush = Brushes.White;
+        
+        /// <summary>
+        /// The pen to use for drawing tracers. 
+        /// </summary>
+        private static Pen TracerPen = new Pen(new SolidBrush(Color.FromArgb(40, Color.Cyan)));
+
+        /// <summary>
+        /// Determines whether to draw tracers showing history of body locations. 
+        /// </summary>
+        public static bool DrawTracers {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Draws the body. 
+        /// </summary>
+        /// <param name="g">The graphics surface to draw on.</param>
+        public void Draw(Graphics g, Renderer renderer) {
+            renderer.FillCircle2D(g, DrawingBrush, Location, Radius);
+
+            if (DrawTracers) {
+                for (int i = 0; i < _locationHistory.Length; i++) {
+                    int j = (_locationHistoryIndex + i) % _locationHistory.Length;
+                    int k = (j + 1) % _locationHistory.Length;
+                    Point start = renderer.ComputePoint(_locationHistory[j]);
+                    Point end = renderer.ComputePoint(_locationHistory[k]);
+                    g.DrawLine(TracerPen, start, end);
+                }
+            }
+        }
+
+        #endregion Drawing
     }
 }

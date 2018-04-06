@@ -172,17 +172,26 @@ namespace NBody {
                         subtree.Accelerate(body);
         }
 
+        #region Drawing
+
+        /// <summary>
+        /// The pen to use for drawing. 
+        /// </summary>
+        private static Pen DrawingPen = new Pen(new SolidBrush(Color.FromArgb(100, Color.Red)));
+
         /// <summary>
         /// Draws the tree and its subtrees. 
         /// </summary>
         /// <param name="g">The graphics surface to draw on.</param>
         public void Draw(Graphics g, Renderer renderer) {
-            renderer.DrawSquare2D(g, Pens.Red, _location, _width);
+            renderer.DrawSquare2D(g, DrawingPen, _location, _width);
 
             if (_subtrees != null)
                 foreach (Octree subtree in _subtrees)
                     if (subtree != null)
                         subtree.Draw(g, renderer);
         }
+
+        #endregion Drawing
     }
 }

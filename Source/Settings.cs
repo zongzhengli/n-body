@@ -146,5 +146,10 @@ namespace NBody {
             World.Instance.DrawTree ^= true;
             showTree.Text = (World.Instance.DrawTree ? "Hide" : "Show") + " Tree";
         }
+
+        private void ShowTracersClick(object sender, EventArgs e) {
+            World.Instance.DrawTracers ^= true;
+            showTree.Text = (World.Instance.DrawTracers ? "Hide" : "Show") + " Tracers";
+        }
     }
 }

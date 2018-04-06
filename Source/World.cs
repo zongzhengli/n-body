@@ -142,6 +142,18 @@ namespace NBody {
         }
 
         /// <summary>
+        /// Determines whether to draw tracers showing history of body locations. 
+        /// </summary>
+        public Boolean DrawTracers {
+            get {
+                return Body.DrawTracers;
+            }
+            set {
+                Body.DrawTracers = value;
+            }
+        }
+
+        /// <summary>
         /// The collection of bodies in the simulation. 
         /// </summary>
         private Body[] _bodies = new Body[1000];
@@ -473,11 +485,15 @@ namespace NBody {
         /// </summary>
         /// <param name="g">The graphics surface to draw on.</param>
         public void Draw(Graphics g) {
-            for (int i = 0; i < _bodies.Length; i++)
-                if (_bodies[i] != null) {
-                    Body body = _bodies[i];
-                    _renderer.FillCircle2D(g, Brushes.White, body.Location, body.Radius);
-                }
+            Pen treePen = new Pen(new SolidBrush(Color.FromArgb(100, Color.Red)));
+            Pen bodyPen = new Pen(new SolidBrush(Color.FromArgb(100, Color.Red)));
+
+
+            for (int i = 0; i < _bodies.Length; i++) {
+                Body body = _bodies[i];
+                if (body != null)
+                    body.Draw(g, _renderer);
+            }
 
             if (DrawTree)
                 _tree.Draw(g, _renderer);
